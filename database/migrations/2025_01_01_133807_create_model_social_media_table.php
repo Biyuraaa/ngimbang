@@ -15,6 +15,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('social_media_id')->constrained()->onDelete('cascade');
             $table->morphs('modelable');
+            $table->string('url');
+            $table->string('username')->nullable();
             $table->timestamps();
         });
     }

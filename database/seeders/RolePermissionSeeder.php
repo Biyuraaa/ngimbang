@@ -43,6 +43,8 @@ class RolePermissionSeeder extends Seeder
             }
         }
 
+
+
         // Define Roles with Associated Permissions
         $roles = [
             'umkm' => [
@@ -56,11 +58,6 @@ class RolePermissionSeeder extends Seeder
                 'view-events',
                 'edit-events',
                 'delete-events',
-                'view-umkms',
-                'edit-umkms',
-                'create-products',
-                'edit-products',
-                'view-products',
                 'manage-products',
                 'manage-umkms',
                 'manage-blogs',
@@ -76,11 +73,24 @@ class RolePermissionSeeder extends Seeder
                 'create-blogs',
                 'view-events',
                 'edit-events',
+                'delete-events',
                 'create-events',
-                'view-destinations',
                 'create-destinations',
-                'view-umkms',
+                'view-destinations',
+                'edit-destinations',
+                'delete-destinations',
                 'create-umkms',
+                'view-umkms',
+                'edit-umkms',
+                'delete-umkms',
+                'create-products',
+                'edit-products',
+                'view-products',
+                'delete-products',
+                'create-social_media',
+                'edit-social_media',
+                'view-social_media',
+                'delete-social_media',
                 'view-products',
                 'delete-comments',
                 'view-faqs',
@@ -148,5 +158,7 @@ class RolePermissionSeeder extends Seeder
             $role = Role::firstOrCreate(['name' => $roleName]);
             $role->givePermissionTo($rolePermissions);
         }
+        Role::create(['name' => 'user']);
+        Role::create(['name' => 'admin']);
     }
 }

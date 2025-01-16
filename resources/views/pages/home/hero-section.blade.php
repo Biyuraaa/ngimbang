@@ -1,184 +1,120 @@
-    <!-- Hero Section -->
-    <div class="relative overflow-hidden bg-gradient-to-br from-emerald-50 via-teal-50 to-white">
-        <!-- Decorative Background -->
-        <div class="absolute inset-0">
-            <div
-                class="absolute inset-0 bg-[url('{{ asset('assets/images/hero.jpeg') }}')] bg-cover bg-center opacity-10">
+<section x-data="heroSlider()" x-init="init()"
+    class="relative min-h-screen flex items-center justify-center overflow-hidden" @mouseover="stopAutoplay"
+    @mouseleave="startAutoplay">
+    {{-- Gradient Overlay --}}
+    <div class="absolute inset-0 bg-gradient-to-br from-emerald-900/80 via-blue-900/70 to-violet-900/80 z-10"></div>
+
+    {{-- Slider Images with Improved Transitions --}}
+    <div class="absolute inset-0">
+        @foreach ($destinations as $index => $slide)
+            <div x-show="currentSlide === {{ $index }}"
+                x-transition:enter="transition-all duration-1000 ease-out transform"
+                x-transition:enter-start="translate-x-full opacity-0" x-transition:enter-end="translate-x-0 opacity-100"
+                x-transition:leave="transition-all duration-1000 ease-out transform"
+                x-transition:leave-start="translate-x-0 opacity-100"
+                x-transition:leave-end="-translate-x-full opacity-0" class="absolute inset-0">
+                <img src="{{ $slide['image'] }}" alt="{{ $slide['title'] }}"
+                    class="w-full h-full object-cover transform transition-transform duration-[10000ms] scale-110"
+                    :class="{ 'scale-100': currentSlide === {{ $index }} }">
             </div>
-            <div class="absolute inset-0 bg-gradient-to-br from-emerald-500/10 via-teal-500/10 to-green-500/10"></div>
-        </div>
+        @endforeach
+    </div>
 
-        <!-- Main Content -->
-        <div class="relative">
-            <div class="container mx-auto px-6 py-24 lg:py-32">
-                <div class="grid lg:grid-cols-2 gap-12 items-center">
-                    <!-- Text Content -->
-                    <div class="space-y-9">
-                        <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold" x-data="{
-                            text: '',
-                            textArray: [
-                                'Selamat Datang di Desa Ngimbang',
-                                'The Wonderful of Desa Ngimbang',
-                                'Welcome to Desa Ngimbang',
-                                'Explore Our Village'
-                            ],
-                            currentIndex: 0,
-                            charIndex: 0,
-                            isDeleting: false,
-                            typeSpeed: 100,
-                            deleteSpeed: 50,
-                            pauseEnd: 2000,
-                            pauseStart: 500
-                        }"
-                            x-init="$nextTick(() => {
-                                function typeText() {
-                                    const current = textArray[currentIndex];
-                            
-                                    if (!isDeleting) {
-                                        text = current.substring(0, charIndex + 1);
-                                        charIndex++;
-                            
-                                        if (charIndex === current.length) {
-                                            isDeleting = true;
-                                            setTimeout(typeText, pauseEnd);
-                                            return;
-                                        }
-                                    } else {
-                                        text = current.substring(0, charIndex - 1);
-                                        charIndex--;
-                            
-                                        if (charIndex === 0) {
-                                            isDeleting = false;
-                                            currentIndex = (currentIndex + 1) % textArray.length;
-                                            setTimeout(typeText, pauseStart);
-                                            return;
-                                        }
-                                    }
-                            
-                                    setTimeout(typeText, isDeleting ? deleteSpeed : typeSpeed);
-                                }
-                            
-                                typeText();
-                            })">
-                            <div class="relative inline-block">
-                                <span
-                                    class="bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent whitespace-pre-line"
-                                    x-text="text"></span>
-                                <span class="absolute bottom-0 -right-2 animate-blink text-emerald-600"
-                                    x-bind:style="{ 'left': text.length > 0 ? (text.split('\n').pop().length * 0.61) + 'em' : '0' }">|</span>
-                            </div>
-                        </h1>
+    {{-- Content Container --}}
+    <div class="relative z-20 container mx-auto px-4 text-center">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            {{-- Welcome Text with Animation --}}
+            <div class="space-y-4 sm:space-y-6 mb-8 sm:mb-12 animate-fade-up">
+                <p class="text-lg sm:text-xl text-emerald-300 font-medium tracking-wider uppercase">
+                    Selamat Datang di
+                </p>
+                <h1
+                    class="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white tracking-tight leading-none">
+                    Desa Wisata Gunungsari
+                </h1>
+            </div>
 
-                        <p class="text-green-700 text-lg md:text-xl leading-relaxed">
-                            Temukan keindahan alam, budaya, dan potensi desa kami. Mari bersama membangun masa depan
-                            yang
-                            lebih baik untuk masyarakat desa.
-                        </p>
-
-                        <div class="flex flex-wrap gap-4">
-                            <a href=""
-                                class="inline-flex items-center gap-2 px-6 py-3 text-white bg-green-600 rounded-xl hover:bg-green-700 shadow-lg hover:shadow-xl transition-all duration-300">
-                                <span>Jelajahi Desa</span>
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M9 5l7 7-7 7">
-                                    </path>
-                                </svg>
-                            </a>
-                            <a href=""
-                                class="inline-flex items-center gap-2 px-6 py-3 text-green-700 bg-white/80 backdrop-blur-sm rounded-xl hover:bg-white/90 shadow-lg hover:shadow-xl transition-all duration-300">
-                                <span>Hubungi Kami</span>
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
-                                    </path>
-                                </svg>
-                            </a>
-                        </div>
-                    </div>
-
-                    <!-- Image/Stats Section -->
-                    <div class="relative group">
-                        <div
-                            class="relative rounded-3xl overflow-hidden shadow-2xl transform transition-transform duration-500 hover:scale-[1.02]">
-                            <img src="{{ asset('assets/images/hero.jpeg') }}" alt="Desa Ngimbang"
-                                class="w-full aspect-[4/3] object-cover transform hover:scale-105 transition-transform duration-700">
-                            <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent">
-                            </div>
-
-                            <!-- Stats -->
-                            <div class="absolute bottom-0 left-0 right-0 p-8 backdrop-blur-sm bg-black/20">
-                                <div class="grid grid-cols-3 gap-6">
-                                    <div
-                                        class="text-center transform hover:scale-110 transition-transform duration-300">
-                                        <svg class="w-8 h-8 mx-auto mb-2 text-emerald-400" fill="none"
-                                            stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
-                                            </path>
-                                        </svg>
-                                        <span class="block text-3xl font-bold text-white mb-1">2,500+</span>
-                                        <span class="text-sm font-medium text-emerald-200">Penduduk</span>
-                                    </div>
-                                    <div
-                                        class="text-center transform hover:scale-110 transition-transform duration-300">
-                                        <svg class="w-8 h-8 mx-auto mb-2 text-emerald-400" fill="none"
-                                            stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4">
-                                            </path>
-                                        </svg>
-                                        <span class="block text-3xl font-bold text-white mb-1">15+</span>
-                                        <span class="text-sm font-medium text-emerald-200">UMKM</span>
-                                    </div>
-                                    <div
-                                        class="text-center transform hover:scale-110 transition-transform duration-300">
-                                        <svg class="w-8 h-8 mx-auto mb-2 text-emerald-400" fill="none"
-                                            stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z">
-                                            </path>
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                        </svg>
-                                        <span class="block text-3xl font-bold text-white mb-1">5+</span>
-                                        <span class="text-sm font-medium text-emerald-200">Destinasi</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+            {{-- Slide Content --}}
+            @foreach ($destinations as $index => $destination)
+                <div x-show="currentSlide === {{ $index }}"
+                    x-transition:enter="transition-all duration-1000 delay-300"
+                    x-transition:enter-start="opacity-0 translate-y-8"
+                    x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition-all duration-500"
+                    x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+                    class="space-y-4 sm:space-y-8">
+                    <h2 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white drop-shadow-lg">
+                        {{ $destination->title }}
+                    </h2>
+                    <p
+                        class="text-lg sm:text-xl md:text-2xl text-white/90 font-medium max-w-3xl mx-auto leading-relaxed">
+                        {{ $destination->description }}
+                    </p>
                 </div>
-            </div>
-        </div>
+            @endforeach
 
-        <div class="absolute bottom-0 left-0 right-0">
-            <svg class="w-full h-12 md:h-16 lg:h-20" viewBox="0 0 1440 54" preserveAspectRatio="none"
-                fill="url(#gradient-fill)">
-                <defs>
-                    <linearGradient id="gradient-fill" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" style="stop-color: rgb(255, 255, 255)" />
-                        <stop offset="100%" style="stop-color: rgb(240, 253, 244)" />
-                    </linearGradient>
-                </defs>
-                <path d="M1440 54V0C1252.89 32.4 1041.23 54 810 54C578.77 54 367.11 32.4 180 0H0V54H1440Z"></path>
-            </svg>
+            {{-- CTA Buttons --}}
+            <div class="flex flex-col sm:flex-row justify-center items-stretch gap-4 sm:gap-6 mt-8 sm:mt-12">
+                <a href=""
+                    class="group w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-full transition-all duration-300 flex items-center justify-center gap-3 transform hover:-translate-y-1 hover:shadow-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 sm:w-5 sm:h-5 group-hover:animate-bounce"
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                    </svg>
+                    <span class="text-sm sm:text-base font-bold">Jelajahi Wisata</span>
+                </a>
+                <a href=""
+                    class="group w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white rounded-full transition-all duration-300 flex items-center justify-center gap-3 border-2 border-white/30 transform hover:-translate-y-1 hover:shadow-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                        class="w-4 h-4 sm:w-5 sm:h-5 group-hover:rotate-12 transition-transform" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                    </svg>
+                    <span class="text-sm sm:text-base font-bold">Produk Lokal</span>
+                </a>
+            </div>
         </div>
     </div>
+
+    {{--  Navigation Controls --}}
+    <div class="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between px-4 md:px-8 z-30">
+        <button @click="prev()"
+            class="p-2 rounded-full bg-black/20 backdrop-blur-sm hover:bg-black/30 transition-all duration-300 transform hover:scale-110"
+            aria-label="Previous slide">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+        </button>
+        <button @click="next()"
+            class="p-2 rounded-full bg-black/20 backdrop-blur-sm hover:bg-black/30 transition-all duration-300 transform hover:scale-110"
+            aria-label="Next slide">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+        </button>
+    </div>
+
+    {{-- Progress Indicators --}}
+    <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-3 z-30">
+        @foreach ($destinations as $index => $destination)
+            <button @click="currentSlide = {{ $index }}"
+                :class="{
+                    'w-8 bg-white': currentSlide === {{ $index }},
+                    'w-2 bg-white/50': currentSlide !==
+                        {{ $index }}
+                }"
+                class="h-2 rounded-full transition-all duration-300 hover:bg-white/90"
+                aria-label="Go to slide {{ $index + 1 }}"></button>
+        @endforeach
+    </div>
+</section>
+
+@push('styles')
     <style>
-        @keyframes blink {
-
-            0%,
-            100% {
-                opacity: 1;
-            }
-
-            50% {
-                opacity: 0;
-            }
-        }
-
-        @keyframes fadeUp {
+        @keyframes fade-up {
             from {
                 opacity: 0;
                 transform: translateY(20px);
@@ -190,30 +126,49 @@
             }
         }
 
-        @keyframes gradientFlow {
-            0% {
-                background-position: 0% 50%;
-            }
-
-            50% {
-                background-position: 100% 50%;
-            }
-
-            100% {
-                background-position: 0% 50%;
-            }
-        }
-
-        .animate-blink {
-            animation: blink 1s infinite;
-        }
-
         .animate-fade-up {
-            animation: fadeUp 0.8s ease-out forwards;
-        }
-
-        .gradient-animate {
-            background-size: 200% auto;
-            animation: gradientFlow 3s ease infinite;
+            animation: fade-up 1s ease-out;
         }
     </style>
+@endpush
+
+@push('scripts')
+    <script>
+        function heroSlider() {
+            return {
+                destinations: @json($destinations),
+                currentSlide: 0,
+                autoplayInterval: null,
+                intervalDuration: 6000,
+                init() {
+                    this.startAutoplay();
+                },
+
+                startAutoplay() {
+                    this.autoplayInterval = setInterval(() => {
+                        this.next();
+                    }, this.intervalDuration);
+                },
+
+                stopAutoplay() {
+                    clearInterval(this.autoplayInterval);
+                },
+
+                prev() {
+                    this.currentSlide = this.currentSlide === 0 ? this.destinations.length - 1 : this.currentSlide - 1;
+                    this.resetAutoplay();
+                },
+
+                next() {
+                    this.currentSlide = this.currentSlide === this.destinations.length - 1 ? 0 : this.currentSlide + 1;
+                    this.resetAutoplay();
+                },
+
+                resetAutoplay() {
+                    this.stopAutoplay();
+                    this.startAutoplay();
+                }
+            };
+        }
+    </script>
+@endpush

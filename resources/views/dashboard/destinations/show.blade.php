@@ -54,7 +54,7 @@
                             Kembali
                         </a>
                         @if (Auth::user()->can('edit-destinations'))
-                            <a href="{{ route('destinations.edit') }}"
+                            <a href="{{ route('destinations.editAdmin') }}"
                                 class="inline-flex items-center px-4 py-2 rounded-xl text-sm font-medium text-white bg-emerald-500 hover:bg-emerald-600 transition-all duration-300">
                                 <i class="fas fa-edit mr-2"></i>
                                 Edit
@@ -78,15 +78,77 @@
 
                 <!-- Gallery Section -->
                 <div class="bg-white rounded-2xl shadow-sm border border-emerald-100 p-6">
-                    <h3 class="text-lg font-semibold mb-4">Galeri Foto</h3>
-                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                        @foreach ($destination->galleries as $gallery)
-                            <img src="{{ asset('storage/' . $gallery->path) }}" alt="Gallery image"
-                                class="w-full aspect-square object-cover rounded-xl cursor-pointer hover:opacity-75 transition"
-                                onclick="openLightbox('{{ asset('storage/' . $gallery->path) }}')">
-                        @endforeach
+                    <!-- Header -->
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                        <div class="flex items-center space-x-3">
+                            <div class="bg-gradient-to-br from-emerald-500 to-green-600 p-2 rounded-lg shadow-sm">
+                                <i class="fas fa-images text-white"></i>
+                            </div>
+                            <h3 class="text-lg md:text-xl font-bold text-gray-800">Galeri Foto</h3>
+                        </div>
+                        <div class="flex gap-2">
+                            <label for="gallery-upload"
+                                class="inline-flex items-center px-4 py-2 rounded-xl text-sm font-medium text-white bg-emerald-500 hover:bg-emerald-600 transition-all duration-300 cursor-pointer">
+                                <i class="fas fa-plus mr-2"></i>
+                                Tambah Foto
+                            </label>
+                            <button id="edit-gallery"
+                                class="inline-flex items-center px-4 py-2 rounded-xl text-sm font-medium text-emerald-700 bg-emerald-100 hover:bg-emerald-200 transition-all duration-300">
+                                <i class="fas fa-edit mr-2"></i>
+                                Edit Galeri
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Hidden File Input -->
+                    <form id="gallery-upload-form" class="hidden" enctype="multipart/form-data">
+                        @csrf
+                        <input type="file" id="gallery-upload" name="galleries[]" accept="image/*" class="hidden"
+                            multiple>
+                    </form>
+
+                    @if ($destination->galleries->isEmpty())
+                        <!-- Empty State -->
+                        <div class="text-center py-12">
+                            <div class="mb-4">
+                                <i class="fas fa-images text-6xl text-emerald-200"></i>
+                            </div>
+                            <h3 class="text-lg font-medium text-gray-900 mb-2">Belum Ada Foto</h3>
+                            <p class="text-gray-500 mb-6">Tambahkan foto untuk menampilkan galeri wisata ini</p>
+                            <label for="gallery-upload"
+                                class="inline-flex items-center px-6 py-3 rounded-xl text-sm font-medium text-white 
+                bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700
+                transition-all duration-300 cursor-pointer shadow-sm hover:shadow-md">
+                                <i class="fas fa-cloud-upload-alt mr-2"></i>
+                                Upload Foto Pertama
+                            </label>
+                        </div>
+                    @else
+                        <!-- Gallery Grid -->
+                        <div id="gallery-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                            @foreach ($destination->galleries as $gallery)
+                                <div class="relative group" data-gallery-id="{{ $gallery->id }}">
+                                    <img src="{{ asset('storage/' . $gallery->path) }}" alt="Gallery image"
+                                        class="w-full aspect-square object-cover rounded-xl cursor-pointer hover:opacity-75 transition"
+                                        onclick="openLightbox('{{ asset('storage/' . $gallery->path) }}')">
+                                    <button
+                                        class="delete-gallery-btn hidden absolute top-2 right-2 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-600 transition-all duration-300">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+
+                    <!-- Loading Indicator -->
+                    <div id="gallery-loading"
+                        class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                        <div class="bg-white p-4 rounded-xl">
+                            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
+                        </div>
                     </div>
                 </div>
+
                 <!--Main Section -->
                 <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div class="space-y-6">
@@ -685,3 +747,207 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const editButton = document.getElementById('edit-gallery');
+            const galleryUploadForm = document.getElementById('gallery-upload-form');
+            const galleryUploadInput = document.getElementById('gallery-upload');
+            const galleryPreview = document.getElementById('galleryPreview');
+            const galleryGrid = document.getElementById('gallery-grid');
+            const loadingIndicator = document.getElementById('gallery-loading');
+            let isEditMode = false;
+
+            // Toggle Edit Mode
+            editButton.addEventListener('click', function() {
+                isEditMode = !isEditMode;
+                const deleteButtons = document.querySelectorAll('.delete-gallery-btn');
+
+                deleteButtons.forEach(btn => {
+                    btn.classList.toggle('hidden');
+                });
+
+                editButton.innerHTML = isEditMode ?
+                    '<i class="fas fa-check mr-2"></i>Selesai' :
+                    '<i class="fas fa-edit mr-2"></i>Edit Galeri';
+            });
+
+            // Handle File Selection
+            galleryUploadInput.addEventListener('change', function(e) {
+                galleryPreview.innerHTML = ''; // Clear previous previews
+                const files = e.target.files;
+
+                if (files.length > 10) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Terlalu Banyak File',
+                        text: 'Maksimal 10 foto yang dapat diunggah sekaligus.'
+                    });
+                    galleryUploadInput.value = '';
+                    return;
+                }
+
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    if (file.size > 2 * 1024 * 1024) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'File Terlalu Besar',
+                            text: 'Ukuran file tidak boleh lebih dari 2MB.'
+                        });
+                        continue;
+                    }
+
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const div = document.createElement('div');
+                        div.className = 'relative';
+                        div.innerHTML = `
+                    <img src="${e.target.result}" class="w-full aspect-square object-cover rounded-xl">
+                    <button type="button" class="remove-preview absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                        galleryPreview.appendChild(div);
+                    }
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            if (galleryPreview) {
+                galleryPreview.addEventListener('click', function(e) {
+                    if (e.target.closest('.remove-preview')) {
+                        e.target.closest('.relative').remove();
+                    }
+                });
+            }
+
+            // Handle File Upload
+            galleryUploadForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                loadingIndicator.classList.remove('hidden');
+
+                const formData = new FormData(galleryUploadForm);
+
+                try {
+                    const response = await fetch('{{ route('destinations.galleries.store') }}', {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok) throw new Error(data.message || 'Upload failed');
+
+                    // Add new images to the grid
+                    data.galleries.forEach(gallery => {
+                        const newGalleryDiv = document.createElement('div');
+                        newGalleryDiv.className = 'relative group';
+                        newGalleryDiv.dataset.galleryId = gallery.id;
+
+                        newGalleryDiv.innerHTML = `
+                    <img src="${gallery.url}" 
+                         alt="Gallery image"
+                         class="w-full aspect-square object-cover rounded-xl cursor-pointer hover:opacity-75 transition"
+                         onclick="openLightbox('${gallery.url}')">
+                    <button class="delete-gallery-btn hidden absolute top-2 right-2 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-600 transition-all duration-300">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+
+                        galleryGrid.appendChild(newGalleryDiv);
+                    });
+
+                    // Show success message
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil',
+                        text: 'Foto berhasil ditambahkan ke galeri',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+
+                    // Clear preview and form
+                    galleryPreview.innerHTML = '';
+                    galleryUploadForm.reset();
+
+                } catch (error) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: error.message || 'Terjadi kesalahan saat mengunggah foto'
+                    });
+                } finally {
+                    loadingIndicator.classList.add('hidden');
+                }
+            });
+
+            if (!galleryGrid) return;
+
+            galleryGrid.addEventListener('click', async function(e) {
+                if (!e.target.closest('.delete-gallery-btn')) return;
+
+                const galleryDiv = e.target.closest('[data-gallery-id]');
+                if (!galleryDiv) return;
+
+                const galleryId = galleryDiv.dataset.galleryId;
+
+                try {
+                    const result = await Swal.fire({
+                        title: 'Hapus Foto?',
+                        text: "Foto akan dihapus secara permanen",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#3085d6',
+                        confirmButtonText: 'Ya, Hapus!',
+                        cancelButtonText: 'Batal'
+                    });
+
+                    if (!result.isConfirmed) return;
+
+                    if (loadingIndicator) {
+                        loadingIndicator.classList.remove('hidden');
+                    }
+
+                    const response = await fetch(`/destinations/galleries/${galleryId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    if (!response.ok) throw new Error('Delete failed');
+
+                    galleryDiv.remove();
+
+                    await Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil',
+                        text: 'Foto berhasil dihapus',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+
+                } catch (error) {
+                    console.error('Delete error:', error);
+                    await Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: 'Terjadi kesalahan saat menghapus foto'
+                    });
+                } finally {
+                    if (loadingIndicator) {
+                        loadingIndicator.classList.add('hidden');
+                    }
+                }
+            });
+        });
+    </script>
+@endpush

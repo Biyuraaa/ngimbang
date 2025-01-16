@@ -45,6 +45,12 @@
                     'permission' => 'view-destinations',
                 ],
                 [
+                    'route' => 'umkms.index',
+                    'label' => 'UMKM',
+                    'icon' => 'fas fa-store',
+                    'permission' => 'view-umkms',
+                ],
+                [
                     'route' => 'faqs.index',
                     'label' => 'FAQ',
                     'icon' => 'fas fa-question-circle',

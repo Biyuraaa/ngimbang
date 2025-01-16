@@ -14,8 +14,8 @@ class SocialMedia extends Model
         'name',
     ];
 
-    public function models()
+    public function modelSocialMedia()
     {
-        return $this->morphMany(ModelSocialMedia::class, 'modelable');
+        return $this->hasMany(ModelSocialMedia::class);
     }
 }

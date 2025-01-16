@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Destination;
+use App\Models\Umkm;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -19,6 +20,7 @@ class DatabaseSeeder extends Seeder
             RolePermissionSeeder::class,
             PriceRuleTypeSeeder::class,
             SocialMediaSeeder::class,
+            CategorySeeder::class,
         ]);
 
         $admin = User::factory()->create([
@@ -40,12 +42,29 @@ class DatabaseSeeder extends Seeder
 
         $destination->assignRole('destination-owner');
 
+        $umkm = User::factory()->create([
+            'name' => 'UMKM',
+            'slug' => 'umkm',
+            'email' => 'umkm@umkm.com',
+            'password' => bcrypt('password'),
+        ]);
+
+        $umkm->assignRole('umkm');
+
         Destination::create([
             'user_id' => $destination->id,
             'name' => 'Destination',
             'slug' => 'destination',
             'address' => 'Jl. Destination',
             'description' => 'Destination Description',
+        ]);
+
+        Umkm::create([
+            'user_id' => $umkm->id,
+            'name' => 'UMKM',
+            'slug' => 'umkm',
+            'address' => 'Jl. UMKM',
+            'description' => 'UMKM Description',
         ]);
     }
 }

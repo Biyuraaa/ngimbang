@@ -33,7 +33,6 @@ class UpdateDestinationRequest extends FormRequest
             'open_at' => 'required|date_format:H:i',
             'close_at' => 'required|date_format:H:i',
             'thumbnail' => 'nullable|image',
-
         ];
     }
 }

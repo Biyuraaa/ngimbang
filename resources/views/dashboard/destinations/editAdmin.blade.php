@@ -59,7 +59,7 @@
             <!-- Form Section -->
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
                 <div class="p-6 sm:p-8">
-                    <form action="{{ route('destinations.update') }}" method="POST" enctype="multipart/form-data"
+                    <form action="{{ route('destinations.updateAdmin') }}" method="POST" enctype="multipart/form-data"
                         class="space-y-6">
                         @csrf
                         @method('PUT')

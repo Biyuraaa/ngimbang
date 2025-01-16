@@ -8,6 +8,7 @@ use App\Http\Controllers\BlogController;
 use App\Http\Controllers\DestinationController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\FaqController;
+use App\Http\Controllers\UmkmController;
 
 Route::controller(PageController::class)->group(function () {
     Route::get('/', 'index')->name('home');
@@ -20,8 +21,8 @@ Route::prefix('dashboard')->middleware(['auth', 'verified'])->group(function () 
     Route::resource('blogs', BlogController::class);
     Route::resource('events', EventController::class);
     Route::prefix('destinations')->group(function () {
-        Route::get('/edit', [DestinationController::class, 'edit'])->name('destinations.edit');
-        Route::put('/', [DestinationController::class, 'update'])->name('destinations.update');
+        Route::get('/edit', [DestinationController::class, 'editAdmin'])->name('destinations.editAdmin');
+        Route::put('/', [DestinationController::class, 'updateAdmin'])->name('destinations.updateAdmin');
         Route::get('/prices/create', [DestinationController::class, 'destinationPriceCreate'])->name('destinations.prices.create');
         Route::post('/prices', [DestinationController::class, 'destinationPriceStore'])->name('destinations.prices.store');
         Route::get('/prices/{destinationPriceRule}/edit', [DestinationController::class, 'destinationPriceEdit'])->name('destinations.prices.edit');
@@ -48,7 +49,48 @@ Route::prefix('dashboard')->middleware(['auth', 'verified'])->group(function () 
         Route::put('/social-media/{socialMedia}', [DestinationController::class, 'destinationSocialMediaUpdate'])->name('destinations.social-media.update');
         Route::delete('/social-media/{socialMedia}', [DestinationController::class, 'destinationSocialMediaDestroy'])->name('destinations.social-media.destroy');
     });
-    Route::resource('destinations', DestinationController::class)->except(['edit', 'update']);
+    Route::resource('destinations', DestinationController::class);
+    Route::get('/umkms/edit', [UmkmController::class, 'editAdmin'])->name('umkms.editAdmin');
+    Route::put('/umkms', [UmkmController::class, 'updateAdmin'])->name('umkms.updateAdmin');
+    Route::resource('umkms', UmkmController::class);
+    Route::get('/umkms/products/{product}', [UmkmController::class, 'showProduct'])
+        ->name('umkms.products.show')
+        ->middleware('can:view-products');
+    Route::get('/umkms/products/create', [UmkmController::class, 'createProduct'])
+        ->name('umkms.products.create')
+        ->middleware('can:create-products');
+    Route::post('/umkms/products', [UmkmController::class, 'storeProduct'])
+        ->name('umkms.products.store')
+        ->middleware('can:create-products');
+    Route::get('/umkms/products/{slug}/edit', [UmkmController::class, 'editProduct'])
+        ->name('umkms.products.edit')
+        ->middleware('can:edit-products');
+    Route::put('/umkms/products/{product}', [UmkmController::class, 'updateProduct'])
+        ->name('umkms.products.update')
+        ->middleware('can:edit-products');
+    Route::delete('/umkms/products/{product}', [UmkmController::class, 'destroyProduct'])
+        ->name('umkms.products.destroy')
+        ->middleware('can:delete-products,product');
+    Route::get('/umkms/socialMedia/create', [UmkmController::class, 'createSocialMedia'])
+        ->name('umkms.socialMedia.create')
+        ->middleware('can:create-social_media');
+    Route::post('/umkms/socialMedia', [UmkmController::class, 'storeSocialMedia'])
+        ->name('umkms.socialMedia.store')
+        ->middleware('can:create-social_media');
+    Route::get('/umkms/socialMedia/{socialMedia}/edit', [UmkmController::class, 'editSocialMedia'])
+        ->name('umkms.socialMedia.edit')
+        ->middleware('can:edit-social_media');
+    Route::put('/umkms/socialMedia/{socialMedia}', [UmkmController::class, 'updateSocialMedia'])
+        ->name('umkms.socialMedia.update')
+        ->middleware('can:edit-social_media');
+    Route::delete('/umkms/socialMedia/{socialMedia}', [UmkmController::class, 'destroySocialMedia'])
+        ->name('umkms.socialMedia.destroy')
+        ->middleware('can:destroy-social_media');
+
+    Route::delete('/galleries/{gallery}', [UmkmController::class, 'destroyGallery'])->name('umkms.galleries.destroy');
+
+
+
     Route::resource('faqs', FaqController::class);
 
 
@@ -58,4 +100,6 @@ Route::prefix('dashboard')->middleware(['auth', 'verified'])->group(function () 
     Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
+
 require __DIR__ . '/auth.php';

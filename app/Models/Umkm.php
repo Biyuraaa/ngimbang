@@ -23,11 +23,6 @@ class Umkm extends Model
         'address',
     ];
 
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
-
     public function galleries()
     {
         return $this->morphMany(Gallery::class, 'galleryable');

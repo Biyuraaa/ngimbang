@@ -16,10 +16,10 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained();
             $table->string('name');
             $table->text('description');
-            $table->string('phone');
+            $table->string('phone')->unique()->nullable();
             $table->string('thumbnail')->nullable();
             $table->string('slug')->unique();
-            $table->string('address');
+            $table->string('address')->nullable();
             $table->softDeletes();
             $table->timestamps();
         });

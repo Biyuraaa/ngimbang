@@ -27,11 +27,6 @@ class Destination extends Model
 
     protected $appends = ['average_rating'];
 
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
-
     public function attractions()
     {
         return $this->hasMany(Attraction::class);

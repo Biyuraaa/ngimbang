@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\Destination;
 use Illuminate\Http\Request;
 
 class PageController extends Controller
@@ -43,7 +44,14 @@ class PageController extends Controller
                 'icon' => 'fa-cannabis'
             ]
         ];
-        return view('pages.home.index', compact('products'));
+
+
+        $destinations = Destination::all()->only(['name', 'slug', 'thumbnail', 'description']);
+
+        return view('pages.home.index', compact(
+            'products',
+            'destinations',
+        ));
     }
 
     public function informasiDesa()

@@ -9,6 +9,7 @@ use App\Http\Requests\UpdateDestinationRequest;
 use App\Models\Attraction;
 use App\Models\DestinationPriceRule;
 use App\Models\Facility;
+use App\Models\Gallery;
 use App\Models\PriceRuleType;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
@@ -122,7 +123,12 @@ class DestinationController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit()
+    public function edit(Destination $destination)
+    {
+        //
+
+    }
+    public function editAdmin()
     {
         //
         /** @var User $user */
@@ -131,7 +137,7 @@ class DestinationController extends Controller
             abort(403, 'Anda tidak memiliki izin untuk mengedit destinasi.');
         }
         $destination = Auth::user()->destination;
-        return view('dashboard.destinations.edit', compact(
+        return view('dashboard.destinations.editAdmin', compact(
             'destination',
         ));
     }
@@ -139,10 +145,28 @@ class DestinationController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateDestinationRequest $request)
+    public function update(UpdateDestinationRequest $request, Destination $destination)
     {
         //
-        $validatedData = $request->validated();
+    }
+    public function updateAdmin(Request $request)
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        if (!$user->hasPermissionTo('edit-destinations')) {
+            return redirect()->route('dashboard')
+                ->with('error', 'Anda tidak memiliki akses untuk melihat destinasi ini.');
+        }
+        $validatedData = $request->validate([
+            'name' => 'required|string|max:255',
+            'capacity' => 'required|integer',
+            'description' => 'required|string',
+            'address' => 'required|string',
+            'open_at' => ['required', 'date_format:H:i:s'],
+            'close_at' => ['required', 'date_format:H:i:s', 'after:open_at'],
+            'thumbnail' => 'nullable|image',
+
+        ]);
         try {
             $destination = Auth::user()->destination;
             $imageName = $destination->thumbnail;
@@ -526,6 +550,135 @@ class DestinationController extends Controller
             Log::error('Error deleting destination facility: ' . $e->getMessage());
             return redirect()->back()
                 ->with('error', 'Terjadi kesalahan saat menghapus data');
+        }
+    }
+
+    public function destinationGalleryStore(Request $request)
+    {
+        try {
+            DB::beginTransaction();
+
+            /** @var User $user */
+            $user = Auth::user();
+
+            // Check permissions
+            if (!$user->can('create-galleries') && !$user->hasRole('super-admin')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anda tidak memiliki izin untuk menambah galeri.'
+                ], 403);
+            }
+
+            // Validate the request
+            $validator = validator($request->all(), [
+                'galleries' => 'required|array|max:10',
+                'galleries.*' => [
+                    'required',
+                    'image',
+                    'mimes:jpeg,png,jpg,gif',
+                    'max:2048',
+                ]
+            ], [
+                'galleries.max' => 'Maksimal 10 foto yang dapat diunggah sekaligus.',
+                'galleries.*.max' => 'Ukuran file tidak boleh lebih dari 2MB.',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validasi gagal',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $destination = $user->destination;
+            $galleries = [];
+            $uploadedFiles = [];
+
+            foreach ($request->file('galleries') as $image) {
+                try {
+                    // Generate unique filename
+                    $extension = $image->getClientOriginalExtension();
+                    $filename = Str::uuid() . '.' . $extension;
+
+                    // Store image
+                    $path = $image->storeAs(
+                        'images/destinations/galleries/' . $destination->id,
+                        $filename,
+                        'public'
+                    );
+
+                    $uploadedFiles[] = $path;
+
+                    // Create gallery record
+                    $gallery = $destination->galleries()->create([
+                        'path' => $path,
+                        'galleryable_type' => get_class($destination),
+                        'galleryable_id' => $destination->id,
+                    ]);
+
+                    $galleries[] = [
+                        'id' => $gallery->id,
+                        'url' => asset('storage/' . $path)
+                    ];
+                } catch (\Exception $e) {
+                    throw new \Exception('Failed to process image: ' . $e->getMessage());
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Foto berhasil ditambahkan ke galeri',
+                'galleries' => $galleries
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            foreach ($uploadedFiles ?? [] as $path) {
+                Storage::disk('public')->delete($path);
+            }
+
+            Log::error('Gallery upload failed: ' . $e->getMessage(), [
+                'user_id' => $user->id ?? null,
+                'destination_id' => $destination->id ?? null,
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat mengunggah foto. Silakan coba lagi.'
+            ], 500);
+        }
+    }
+
+    public function destinationGalleryDestroy(Gallery $gallery)
+    {
+        /** @var User $user */
+        $user = Auth::user();
+
+        if (!$user->can('delete-galleries') && !$user->hasRole('super-admin')) {
+            abort(403, 'Anda tidak memiliki izin untuk menghapus galeri.');
+        }
+        if (
+            $gallery->galleryable_type !== get_class($user->destination) ||
+            $gallery->galleryable_id !== $user->destination->id
+        ) {
+            abort(403, 'Anda tidak memiliki akses ke galeri ini.');
+        }
+
+        try {
+            Storage::disk('public')->delete('images/destinations/galleries' . $gallery->path);
+            $gallery->delete();
+            return response()->json([
+                'success' => true,
+                'message' => 'Foto berhasil dihapus'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus foto'
+            ], 500);
         }
     }
 }

@@ -58,4 +58,19 @@ class Product extends Model
     {
         return $this->morphMany(ModelSocialMedia::class, 'modelable');
     }
+
+    public function ratingCount()
+    {
+        return $this->ratings()->count();
+    }
+
+
+    public function getRatingDistribution()
+    {
+        return $this->ratings()
+            ->selectRaw('score, COUNT(*) as count')
+            ->groupBy('score')
+            ->orderBy('score', 'desc')
+            ->get();
+    }
 }

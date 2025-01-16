@@ -14,6 +14,8 @@ class ModelSocialMedia extends Model
         'social_media_id',
         'model_id',
         'model_type',
+        'url',
+        'username',
     ];
 
     public function socialMedia()
@@ -21,7 +23,7 @@ class ModelSocialMedia extends Model
         return $this->belongsTo(SocialMedia::class);
     }
 
-    public function model()
+    public function modelable()
     {
         return $this->morphTo();
     }
