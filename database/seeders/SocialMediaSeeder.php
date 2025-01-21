@@ -15,17 +15,21 @@ class SocialMediaSeeder extends Seeder
     {
         //
         $socialMedias = [
-            ['platform' => 'Facebook'],
-            ['platform' => 'Instagram'],
-            ['platform' => 'Twitter'],
-            ['platform' => 'YouTube'],
-            ['platform' => 'TikTok'],
-            ['platform' => 'Pinterest'],
-            ['platform' => 'Snapchat'],
-            ['platform' => 'WhatsApp'],
-            ['platform' => 'Telegram'],
-            ['platform' => 'Line'],
-            ['platform' => 'Lazada'],
+            // ['platform' => 'Facebook'],
+            // ['platform' => 'Instagram'],
+            // ['platform' => 'Twitter'],
+            // ['platform' => 'YouTube'],
+            // ['platform' => 'TikTok'],
+            // ['platform' => 'Pinterest'],
+            // ['platform' => 'Snapchat'],
+            // ['platform' => 'WhatsApp'],
+            // ['platform' => 'Telegram'],
+            // ['platform' => 'Line'],
+            // ['platform' => 'Lazada'],
+            ['platform' => 'Shopee'],
+            ['platform' => 'Tokopedia'],
+            ['platform' => 'Bukalapak'],
+
         ];
 
         DB::table('social_media')->insert($socialMedias);

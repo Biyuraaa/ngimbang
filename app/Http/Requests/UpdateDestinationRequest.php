@@ -14,7 +14,7 @@ class UpdateDestinationRequest extends FormRequest
     {
         /** @var \User $user */
         $user = Auth::user();
-        return $user->can('edit-destinations');
+        return $user->hasRole('admin');
     }
 
     /**
@@ -27,11 +27,10 @@ class UpdateDestinationRequest extends FormRequest
         return [
             //
             'name' => 'required|string|max:255',
-            'capacity' => 'required|integer',
             'description' => 'required|string',
             'address' => 'required|string',
-            'open_at' => 'required|date_format:H:i',
-            'close_at' => 'required|date_format:H:i',
+            'open_at' => ['required', 'date_format:H:i'],
+            'close_at' => ['required', 'date_format:H:i', 'after:open_at'],
             'thumbnail' => 'nullable|image',
         ];
     }

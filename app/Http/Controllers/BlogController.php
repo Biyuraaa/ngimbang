@@ -22,10 +22,8 @@ class BlogController extends Controller
     {
         /** @var User $user */
         $user = Auth::user();
-        if ($user->hasRole('super-admin')) {
+        if ($user->hasRole('admin')) {
             $blogs = Blog::paginate(10);
-        } elseif ($user->can('view-blogs')) {
-            $blogs = Blog::where('user_id', Auth::id())->paginate(10);
         } else {
             abort(403, 'Anda tidak memiliki izin untuk melihat blog.');
         }
@@ -41,7 +39,7 @@ class BlogController extends Controller
     {
         /** @var User $user */
         $user = Auth::user();
-        if (!$user->hasPermissionTo('create-blogs')) {
+        if (!$user->hasRole('admin')) {
             return redirect()->route('dashboard')
                 ->with('error', 'Anda tidak memiliki akses untuk membuat blog.');
         }
@@ -55,32 +53,26 @@ class BlogController extends Controller
     public function store(StoreBlogRequest $request)
     {
         //
-        /** @var User $user */
-        $user = Auth::user();
-        if (!$user->hasPermissionTo('create-blogs')) {
-            return redirect()->route('dashboard')
-                ->with('error', 'Anda tidak memiliki akses untuk membuat blog.');
-        }
         $validatedData = $request->validated();
 
         try {
             $tags = json_decode($request->tags, true);
             $slug = Str::slug($validatedData['title'], '-');
 
+            $imageName = null;
             if ($request->hasFile('thumbnail')) {
                 $image = $request->file('thumbnail');
                 $extension = $image->getClientOriginalExtension();
                 $imageName = "{$slug}.{$extension}";
-                $path = $image->storeAs('images/blogs', $imageName, 'public');
-                $validatedData['thumbnail'] = $path;
+                $image->storeAs('images/blogs', $imageName, 'public');
             }
             $blog = Blog::create([
                 'title' => $validatedData['title'],
                 'content' => $validatedData['content'],
                 'excerpt' => $validatedData['excerpt'],
                 'status' => $validatedData['status'],
-                'thumbnail' => $validatedData['thumbnail'],
-                'slug' => $slug,
+                'thumbnail' => $imageName,
+                'slug' => $this->generateUniqueSlug($validatedData['title']),
                 'user_id' => Auth::id(),
             ]);
             if ($request->has('tags')) {
@@ -104,7 +96,7 @@ class BlogController extends Controller
     {
         /** @var User $user */
         $user = Auth::user();
-        if (!$user->hasPermissionTo('view-blogs') && $blog->user_id !== Auth::id() && !$user->hasRole('super-admin')) {
+        if (!$user->hasRole('admin')) {
             return redirect()->route('dashboard')
                 ->with('error', 'Anda tidak memiliki akses untuk melihat blog ini.');
         }
@@ -118,7 +110,7 @@ class BlogController extends Controller
     {
         /** @var User $user */
         $user = Auth::user();
-        if (!$user->hasPermissionTo('edit-blogs') && $blog->user_id !== Auth::id() && !$user->hasRole('super-admin')) {
+        if (!$user->hasRole('admin')) {
             return redirect()->route('dashboard')
                 ->with('error', 'Anda tidak memiliki akses untuk mengedit blog ini.');
         }
@@ -134,30 +126,21 @@ class BlogController extends Controller
      */
     public function update(UpdateBlogRequest $request, Blog $blog)
     {
-        /** @var User $user */
-        $user = Auth::user();
-        if (!$user->hasPermissionTo('edit-blogs') && $blog->user_id !== Auth::id() && !$user->hasRole('super-admin')) {
-            return redirect()->route('dashboard')
-                ->with('error', 'Anda tidak memiliki akses untuk mengubah blog ini.');
-        }
-
         $validatedData = $request->validated();
 
         try {
             $tags = json_decode($request->tags, true);
-            $slug = Str::slug($validatedData['title'], '-');
+            $slug = $this->generateUniqueSlug($validatedData['title']);
             $imageName = $blog->thumbnail;
 
             if ($request->hasFile('thumbnail')) {
                 if ($blog->thumbnail) {
-                    Storage::disk('public')->delete($blog->image);
+                    Storage::disk('public')->delete('images/blogs/' . $blog->thumbnail);
                 }
-
                 $image = $request->file('thumbnail');
                 $extension = $image->getClientOriginalExtension();
                 $imageName = "{$slug}.{$extension}";
-                $path = $image->storeAs('images/blogs', $imageName, 'public');
-                $imageName = $path;
+                $image->storeAs('images/blogs', $imageName, 'public');
             }
 
             $blog->update([
@@ -165,7 +148,7 @@ class BlogController extends Controller
                 'content' => $validatedData['content'],
                 'excerpt' => $validatedData['excerpt'],
                 'status' => $validatedData['status'],
-                'image' => $imageName,
+                'thumbnail' => $imageName,
                 'slug' => $slug,
             ]);
 
@@ -191,5 +174,39 @@ class BlogController extends Controller
     public function destroy(Blog $blog)
     {
         //
+        /** @var User $user */
+        $user = Auth::user();
+        if (!$user->hasRole('admin')) {
+            return redirect()->route('dashboard')
+                ->with('error', 'Anda tidak memiliki akses untuk menghapus blog ini.');
+        }
+
+        try {
+            if ($blog->thumbnail) {
+                Storage::disk('public')->delete('images/blogs/' . $blog->thumbnail);
+            }
+            $blog->delete();
+            return redirect()->route('blogs.index')
+                ->with('success', 'Blog berhasil dihapus.');
+        } catch (\Exception $e) {
+            Log::error($e->getMessage());
+            return redirect()->back()
+                ->with('error', 'Terjadi kesalahan saat menghapus blog.');
+        }
+    }
+
+    private function generateUniqueSlug($name)
+    {
+        $baseSlug = Str::slug($name);
+        $randomString = Str::random(8);
+        $slug = $baseSlug . '-' . $randomString;
+        $count = 1;
+
+        while (Blog::where('slug', $slug)->exists()) {
+            $slug = $baseSlug . '-' . $randomString . '-' . $count;
+            $count++;
+        }
+
+        return $slug;
     }
 }

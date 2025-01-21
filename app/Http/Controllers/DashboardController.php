@@ -14,7 +14,7 @@ class DashboardController extends Controller
     {
         /** @var User $user */
         $user = Auth::user();
-        if (!$user->can('view-dashboard')) {
+        if (!$user->hasRole('admin')) {
             return redirect()->route('home')
                 ->with('error', 'Anda tidak memiliki izin untuk mengakses dashboard.');
         }

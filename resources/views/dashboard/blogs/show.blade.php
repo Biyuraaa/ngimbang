@@ -1,9 +1,37 @@
 @extends('layouts.app')
-
 @section('content')
     <div class="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-emerald-50 py-4 sm:py-8">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <!-- Breadcrumb remains unchanged -->
+            <!-- Breadcrumb -->
+            <nav class="flex mb-4 sm:mb-8 overflow-x-auto" aria-label="Breadcrumb">
+                <ol class="inline-flex items-center space-x-1 md:space-x-3 whitespace-nowrap">
+                    <li>
+                        <div class="flex items-center">
+                            <i class="fas fa-home text-emerald-600 mr-2"></i>
+                            <a href="{{ route('dashboard') }}"
+                                class="text-emerald-600 hover:text-emerald-800 font-medium transition-colors duration-200">
+                                Dashboard
+                            </a>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="flex items-center">
+                            <i class="fas fa-chevron-right text-emerald-300 mr-2"></i>
+                            <a href="{{ route('blogs.index') }}"
+                                class="text-emerald-600 hover:text-emerald-800 font-medium transition-colors duration-200">
+                                Blog
+                            </a>
+                        </div>
+                    </li>
+                    <li aria-current="page">
+                        <div class="flex items-center">
+                            <i class="fas fa-chevron-right text-emerald-300 mr-2"></i>
+                            <span class="text-emerald-800 font-medium">{{ $blog->title }}</span>
+                        </div>
+                    </li>
+                </ol>
+            </nav>
+
 
             <!-- Header Section -->
             <div class="bg-white rounded-2xl shadow-sm border border-emerald-100 p-4 sm:p-6 mb-4 sm:mb-8">
@@ -34,7 +62,7 @@
                     <!-- Main Image and Title -->
                     <div class="bg-white rounded-2xl shadow-sm border border-emerald-100 overflow-hidden">
                         <div class="relative h-96">
-                            <img src="{{ asset('storage/' . $blog->thumbnail) }}" alt="{{ $blog->title }}"
+                            <img src="{{ asset('storage/images/blogs/' . $blog->thumbnail) }}" alt="{{ $blog->title }}"
                                 class="w-full h-full object-cover">
                             <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
                                 <h1 class="text-3xl font-bold text-white">{{ $blog->title }}</h1>

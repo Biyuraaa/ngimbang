@@ -16,7 +16,7 @@
                     </li>
                     <li aria-current="page">
                         <div class="flex items-center">
-                            <i class="fas fa-chevron-right text-emerald-300 mx-2"></i>
+                            <i class="fas fa-chevron-right text-emerald-300 mr-2"></i>
                             <span class="text-emerald-800 font-medium">FAQ</span>
                         </div>
                     </li>

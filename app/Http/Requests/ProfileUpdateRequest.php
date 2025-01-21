@@ -17,7 +17,7 @@ class ProfileUpdateRequest extends FormRequest
     {
         /** @var User $user */
         $user = Auth::user();
-        return $user->hasPermissionTo('edit-profile');
+        return $user->hasRole('admin');
     }
 
 

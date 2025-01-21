@@ -24,10 +24,8 @@ class EventController extends Controller
     {
         /** @var User $user */
         $user = Auth::user();
-        if ($user->hasRole('super-admin')) {
+        if ($user->hasRole('admin')) {
             $events = Event::paginate(10);
-        } elseif ($user->can('view-events')) {
-            $events = Event::where('user_id', Auth::id())->paginate(10);
         } else {
             abort(403, 'Anda tidak memiliki izin untuk melihat event.');
         }
@@ -42,7 +40,7 @@ class EventController extends Controller
     {
         /** @var User $user */
         $user = Auth::user();
-        if (!$user->hasPermissionTo('create-events')) {
+        if (!$user->hasRole('admin')) {
             return redirect()->route('dashboard')
                 ->with('error', 'Anda tidak memiliki akses untuk membuat event.');
         }
@@ -54,28 +52,24 @@ class EventController extends Controller
      */
     public function store(StoreEventRequest $request)
     {
-        /** @var User $user */
-        $user = Auth::user();
-        if (!$user->can('create-events')) {
-            return redirect()->route('dashboard')
-                ->with('error', 'Anda tidak memiliki akses untuk membuat event.');
-        }
-
         $validatedData = $request->validated();
 
         try {
             DB::beginTransaction();
+            $slug = $this->generateUniqueSlug($validatedData['title']);
 
-            $thumbnailPath = null;
-            if ($request->hasFile('image')) {
-                $thumbnail = $request->file('image');
-                $thumbnailName = Str::uuid() . '.' . $thumbnail->getClientOriginalExtension();
-                $thumbnailPath = $thumbnail->storeAs('images/events', $thumbnailName, 'public');
+            $imageName = null;
+            if ($request->hasFile('thumbnail')) {
+                $image = $request->file('thumbnail');
+                $extension = $image->getClientOriginalExtension();
+                $imageName = "{$slug}.{$extension}";
+                $image->storeAs('images/events', $imageName, 'public');
             }
+
             Event::create([
-                'user_id' => $user->id,
+                'user_id' => Auth::id(),
                 'title' => $validatedData['title'],
-                'slug' => $this->generateUniqueSlug($validatedData['title']),
+                'slug' => $slug,
                 'location' => $validatedData['location'],
                 'price' => $validatedData['price'] ?? 0,
                 'registration_url' => $validatedData['registration_url'],
@@ -84,7 +78,7 @@ class EventController extends Controller
                 'start_at' => $validatedData['start_at'],
                 'end_at' => $validatedData['end_at'],
                 'description' => $validatedData['description'],
-                'image' => $thumbnailPath,
+                'image' => $imageName,
                 'status' => 'published',
             ]);
 
@@ -101,27 +95,13 @@ class EventController extends Controller
         }
     }
 
-    private function generateUniqueSlug($name)
-    {
-        $baseSlug = Str::slug($name);
-        $randomString = Str::random(8);
-        $slug = $baseSlug . '-' . $randomString;
-        $count = 1;
-
-        while (Event::where('slug', $slug)->exists()) {
-            $slug = $baseSlug . '-' . $randomString . '-' . $count;
-            $count++;
-        }
-
-        return $slug;
-    }
 
     public function show(Event $event)
     {
         //
         /** @var User $user */
         $user = Auth::user();
-        if (!$user->hasPermissionTo('view-events') && $event->user_id !== Auth::id() && !$user->hasRole('super-admin')) {
+        if (!$user->hasRole('admin')) {
             return redirect()->route('dashboard')
                 ->with('error', 'Anda tidak memiliki akses untuk melihat event ini.');
         }
@@ -133,7 +113,7 @@ class EventController extends Controller
         //
         /** @var User $user */
         $user = Auth::user();
-        if (!$user->hasPermissionTo('edit-events') && $event->user_id !== Auth::id() && !$user->hasRole('super-admin')) {
+        if (!$user->hasRole('admin')) {
             return redirect()->route('dashboard')
                 ->with('error', 'Anda tidak memiliki akses untuk mengedit event ini.');
         }
@@ -145,29 +125,21 @@ class EventController extends Controller
     public function update(UpdateEventRequest $request, Event $event)
     {
         //
-        /** @var User $user */
-        $user = Auth::user();
-        if (!$user->hasPermissionTo('edit-events') && $event->user_id !== Auth::id() && !$user->hasRole('super-admin')) {
-            return redirect()->route('dashboard')
-                ->with('error', 'Anda tidak memiliki akses untuk mengubah event ini.');
-        }
         $validatedData = $request->validated();
-
         try {
             $slug = $this->generateUniqueSlug($validatedData['title']);
 
             $imageName = $event->image;
 
-            if ($request->hasFile('image')) {
-                if ($event->image) {
-                    Storage::disk('public')->delete($event->image);
+            if ($request->hasFile('thumbnail')) {
+                if ($event->thumbnail) {
+                    Storage::disk('public')->delete('images/events/' . $event->thumbnail);
                 }
 
-                $image = $request->file('image');
+                $image = $request->file('thumbnail');
                 $extension = $image->getClientOriginalExtension();
                 $imageName = "{$slug}.{$extension}";
-                $path = $image->storeAs('images/events', $imageName, 'public');
-                $imageName = $path;
+                $image->storeAs('images/events', $imageName, 'public');
             }
 
             $event->update([
@@ -181,7 +153,7 @@ class EventController extends Controller
                 'start_at' => $validatedData['start_at'],
                 'end_at' => $validatedData['end_at'],
                 'description' => $validatedData['description'],
-                'image' => $imageName,
+                'thumbnail' => $imageName,
             ]);
 
             return redirect()->route('events.index')->with('success', 'Event berhasil diperbarui.');
@@ -194,5 +166,38 @@ class EventController extends Controller
     public function destroy(Event $event)
     {
         //
+        /** @var User $user */
+        $user = Auth::user();
+        if (!$user->hasRole('admin')) {
+            return redirect()->route('dashboard')
+                ->with('error', 'Anda tidak memiliki akses untuk menghapus event ini.');
+        }
+        try {
+            if ($event->thumbnail) {
+                Storage::disk('public')->delete('images/events/' . $event->thumbnail);
+            }
+            $event->delete();
+            return redirect()->route('events.index')
+                ->with('success', 'Event berhasil dihapus.');
+        } catch (\Exception $e) {
+            Log::error($e->getMessage());
+            return redirect()->back()
+                ->with('error', 'Terjadi kesalahan saat menghapus event.');
+        }
+    }
+
+    private function generateUniqueSlug($name)
+    {
+        $baseSlug = Str::slug($name);
+        $randomString = Str::random(8);
+        $slug = $baseSlug . '-' . $randomString;
+        $count = 1;
+
+        while (Event::where('slug', $slug)->exists()) {
+            $slug = $baseSlug . '-' . $randomString . '-' . $count;
+            $count++;
+        }
+
+        return $slug;
     }
 }

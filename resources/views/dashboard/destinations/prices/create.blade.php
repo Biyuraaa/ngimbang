@@ -59,7 +59,7 @@
 
             <!-- Form Section -->
             <div class="bg-white rounded-2xl shadow-sm border border-emerald-100 p-4 sm:p-6">
-                <form action="{{ route('destinations.prices.store') }}" method="POST" class="space-y-6">
+                <form action="{{ route('destinations.prices.store', $destination) }}" method="POST" class="space-y-6">
                     @csrf
 
                     <!-- Price Rule Type Input -->

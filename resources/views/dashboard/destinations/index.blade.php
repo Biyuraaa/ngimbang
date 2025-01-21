@@ -16,7 +16,7 @@
                     </li>
                     <li aria-current="page">
                         <div class="flex items-center">
-                            <i class="fas fa-chevron-right text-emerald-300 mx-2"></i>
+                            <i class="fas fa-chevron-right text-emerald-300 mr-2"></i>
                             <span class="text-emerald-800 font-medium">Wisata</span>
                         </div>
                     </li>
@@ -71,11 +71,9 @@
                                 <th class="px-6 py-4 text-left text-sm font-semibold text-emerald-700">
                                     Status
                                 </th>
-                                @if (Auth::user()->hasRole('destination-owner') || Auth::user()->hasRole('super-admin'))
-                                    <th class="px-6 py-4 text-right text-sm font-semibold text-emerald-700">
-                                        Aksi
-                                    </th>
-                                @endif
+                                <th class="px-6 py-4 text-right text-sm font-semibold text-emerald-700">
+                                    Aksi
+                                </th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-emerald-100">
@@ -88,7 +86,6 @@
                                     </td>
                                     <td class="px-6 py-4">
                                         <div class="flex items-center text-gray-600">
-                                            <i class="fas fa-map-marker-alt text-emerald-500 mr-2"></i>
                                             <span class="text-sm text-gray-600">
                                                 {{ $destination->address ? \Illuminate\Support\Str::limit($destination->address, 50) : 'Alamat belum ditambahkan' }}
                                             </span>
@@ -96,7 +93,6 @@
                                     </td>
                                     <td class="px-6 py-4">
                                         <div class="flex items-center text-gray-600">
-                                            <i class="fas fa-clock text-emerald-500 mr-2"></i>
                                             <span class="text-sm">
                                                 {{ \Carbon\Carbon::parse($destination->open_at)->format('H:i') }} -
                                                 {{ \Carbon\Carbon::parse($destination->close_at)->format('H:i') }} WIB
@@ -108,16 +104,11 @@
                                             @if ($destination->status)
                                                 <span @class([
                                                     'px-2.5 py-0.5 text-xs font-medium rounded-full',
-                                                    'bg-green-100 text-green-700' => $destination->status === 'active',
+                                                    'bg-green-100 text-green-700' => $destination->status === 'published',
+                                                    'bg-gray-100 text-gray-700' => $destination->status === 'draft',
+                                                    'bg-red-100 text-red-700' => $destination->status === 'archived',
                                                     'bg-yellow-100 text-yellow-700' => $destination->status === 'pending',
-                                                    'bg-red-100 text-red-700' => $destination->status === 'inactive',
                                                 ])>
-                                                    <i @class([
-                                                        'fas fa-circle text-xs mr-1',
-                                                        'text-green-500' => $destination->status === 'active',
-                                                        'text-yellow-500' => $destination->status === 'pending',
-                                                        'text-red-500' => $destination->status === 'inactive',
-                                                    ])></i>
                                                     {{ ucfirst($destination->status ?? 'Status belum diatur') }}
                                                 </span>
                                             @else
@@ -129,7 +120,7 @@
                                             @endif
                                         </div>
                                     </td>
-                                    @if (Auth::user()->hasRole('super-admin') || Auth::user()->hasRole('destination-owner'))
+                                    @if (Auth::user()->hasRole('admin'))
                                         <td class="px-3 py-2">
                                             <div class="flex justify-end items-center gap-2">
                                                 <a href="{{ route('destinations.show', $destination) }}"
@@ -137,13 +128,17 @@
                                                     <i class="fas fa-eye mr-1.5"></i>
                                                     Lihat
                                                 </a>
-                                                @if (Auth::user()->hasRole('destination-owner'))
-                                                    <a href="{{ route('destinations.edit', $destination) }}"
-                                                        class="inline-flex items-center px-2 py-1 text-sm rounded-lg text-orange-700 bg-orange-50 border border-orange-200 hover:bg-orange-100 transition-colors duration-200">
-                                                        <i class="fas fa-edit mr-1.5"></i>
-                                                        Edit
-                                                    </a>
-                                                @endif
+                                                <form action="{{ route('destinations.destroy', $destination) }}"
+                                                    method="POST" class="inline-block">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit"
+                                                        onclick="return confirm('Apakah Anda yakin ingin menghapus wisata ini?');"
+                                                        class="inline-flex items-center px-2 py-1 text-sm rounded-lg text-red-700 bg-red-50 border border-red-200 hover:bg-red-100 transition-colors duration-200">
+                                                        <i class="fas fa-trash mr-1.5"></i>Hapus
+                                                    </button>
+                                                </form>
+
                                             </div>
                                         </td>
                                     @endif

@@ -14,19 +14,15 @@ class Umkm extends Model
 
 
     protected $fillable = [
-        'user_id',
         'name',
+        'owner',
         'description',
+        'email',
         'phone',
         'thumbnail',
         'slug',
         'address',
     ];
-
-    public function galleries()
-    {
-        return $this->morphMany(Gallery::class, 'galleryable');
-    }
 
     public function ratings()
     {

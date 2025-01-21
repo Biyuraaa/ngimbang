@@ -48,11 +48,6 @@ class Product extends Model
     }
 
 
-    public function galleries()
-    {
-        return $this->morphMany(Gallery::class, 'galleryable');
-    }
-
 
     public function socialMedia()
     {

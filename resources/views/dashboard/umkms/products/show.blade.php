@@ -23,17 +23,15 @@
                             </a>
                         </div>
                     </li>
-                    @if (Auth::user()->hasRole('superadmin'))
-                        <li class="min-w-0">
-                            <div class="flex items-center">
-                                <i class="fas fa-chevron-right text-emerald-300 mx-1 md:mx-2 text-sm md:text-base"></i>
-                                <a href="{{ route('umkms.show', $product->umkm) }}"
-                                    class="text-sm md:text-base text-emerald-600 hover:text-emerald-800 transition-colors duration-200 truncate">
-                                    {{ $product->umkm->name }}
-                                </a>
-                            </div>
-                        </li>
-                    @endif
+                    <li class="min-w-0">
+                        <div class="flex items-center">
+                            <i class="fas fa-chevron-right text-emerald-300 mx-1 md:mx-2 text-sm md:text-base"></i>
+                            <a href="{{ route('umkms.show', $product->umkm) }}"
+                                class="text-sm md:text-base text-emerald-600 hover:text-emerald-800 transition-colors duration-200 truncate">
+                                {{ $product->umkm->name }}
+                            </a>
+                        </div>
+                    </li>
                     <li aria-current="page" class="min-w-0">
                         <div class="flex items-center">
                             <i class="fas fa-chevron-right text-emerald-300 mx-1 md:mx-2 text-sm md:text-base"></i>
@@ -58,114 +56,108 @@
                                 {{ $product->umkm->name }}</p>
                         </div>
                     </div>
-                    @if (Auth::user()->hasRole('superadmin'))
-                        <a href="{{ route('umkms.show', $product->umkm) }}"
-                            class="w-full md:w-auto inline-flex items-center justify-center px-4 md:px-6 py-2.5 md:py-3 rounded-xl md:rounded-full text-sm font-medium text-emerald-700 bg-emerald-100 hover:bg-emerald-200 transition-all duration-300">
-                            <i class="fas fa-arrow-left mr-2"></i>
-                            Kembali ke UMKM
-                        </a>
-                    @else
-                        <a href="{{ route('umkms.index') }}"
-                            class="w-full md:w-auto inline-flex items-center justify-center px-4 md:px-6 py-2.5 md:py-3 rounded-xl md:rounded-full text-sm font-medium text-emerald-700 bg-emerald-100 hover:bg-emerald-200 transition-all duration-300">
-                            <i class="fas fa-arrow-left mr-2"></i>
-                            Kembali ke UMKM
-                        </a>
-                    @endif
+                    <a href="{{ route('umkms.show', $product->umkm) }}"
+                        class="w-full md:w-auto inline-flex items-center justify-center px-4 md:px-6 py-2.5 md:py-3 rounded-xl md:rounded-full text-sm font-medium text-emerald-700 bg-emerald-100 hover:bg-emerald-200 transition-all duration-300">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        Kembali
+                    </a>
                 </div>
             </div>
             <!-- Main Content -->
             <div class="space-y-6">
                 <!-- Main Product Section -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     <!-- Left Column - Images -->
                     <div class="space-y-6">
-                        <!-- Main Product Image -->
+                        <!-- Main Product Image Card -->
                         <div class="bg-white rounded-2xl shadow-lg border border-emerald-100 overflow-hidden group">
                             <div class="relative aspect-square cursor-zoom-in overflow-hidden">
+                                <!-- Main Image -->
                                 <img src="{{ asset('storage/images/products/' . $product->thumbnail) }}"
                                     alt="{{ $product->name }}"
-                                    class="w-full h-full object-cover transform transition-transform duration-500 group-hover:scale-110">
-                                <div class="absolute inset-0 bg-black opacity-0 group-hover:opacity-10 transition-opacity">
+                                    class="w-full h-full object-cover transform transition-all duration-500 group-hover:scale-110">
+
+                                <!-- Overlay Effect -->
+                                <div
+                                    class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300">
+                                </div>
+
+                                <!-- Zoom Icon -->
+                                <div
+                                    class="absolute bottom-4 right-4 bg-white/90 backdrop-blur-sm p-2 rounded-lg opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+                                    <i class="fas fa-search-plus text-emerald-600"></i>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Product Gallery -->
-                        <div
-                            class="bg-gradient-to-br from-white to-emerald-50/50 rounded-2xl shadow-lg border border-emerald-100 p-6">
-                            <!-- Header -->
-                            <div class="flex items-center justify-between mb-6">
-                                <div class="flex items-center space-x-3">
-                                    <div class="bg-gradient-to-br from-emerald-500 to-green-600 p-3 rounded-lg shadow-md">
-                                        <i class="fas fa-images text-white text-lg"></i>
+                        <!-- Image Gallery Preview -->
+                        @if ($product->images && count($product->images) > 0)
+                            <div class="grid grid-cols-4 gap-4">
+                                @foreach ($product->images as $image)
+                                    <div
+                                        class="aspect-square rounded-xl overflow-hidden border-2 border-transparent hover:border-emerald-500 transition-all duration-300 cursor-pointer">
+                                        <img src="{{ asset('storage/images/products/' . $image->path) }}"
+                                            alt="{{ $product->name }}"
+                                            class="w-full h-full object-cover hover:scale-110 transition-transform duration-300">
                                     </div>
-                                    <h3 class="text-xl font-bold text-gray-800">Galeri Produk</h3>
-                                </div>
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
+
+                    <!-- Right Column - Product Info -->
+                    <div class="space-y-6">
+                        <!-- Main Info Card -->
+                        <div class="bg-white rounded-2xl shadow-lg border border-emerald-100 p-8">
+                            <!-- Category & Status -->
+                            <div class="flex flex-wrap items-center gap-3 mb-6">
+                                <span
+                                    class="px-4 py-1.5 text-sm font-medium rounded-full text-emerald-700 bg-emerald-100 border border-emerald-200">
+                                    <i class="fas fa-tag mr-1.5"></i>
+                                    {{ $product->category->name }}
+                                </span>
+                                <span
+                                    class="px-4 py-1.5 text-sm font-medium rounded-full border
+                    {{ $product->status === 'published'
+                        ? 'text-green-700 bg-green-100 border-green-200'
+                        : ($product->status === 'draft'
+                            ? 'text-yellow-700 bg-yellow-100 border-yellow-200'
+                            : 'text-red-700 bg-red-100 border-red-200') }}">
+                                    <i class="fas fa-circle text-xs mr-1.5"></i>
+                                    {{ ucfirst($product->status) }}
+                                </span>
                             </div>
 
-                            <!-- Gallery Container -->
-                            <div class="space-y-4">
-                                <!-- Thumbnails Scroll -->
-                                <div class="relative">
-                                    <div class="overflow-x-auto hide-scrollbar">
-                                        <div class="flex space-x-4 py-2">
-                                            @foreach ($product->galleries as $gallery)
-                                                <div
-                                                    class="flex-none w-32 relative aspect-square cursor-pointer 
-                        hover:opacity-75 transition duration-300">
-                                                    <img src="{{ asset('storage/images/products/' . $gallery->path) }}"
-                                                        alt="{{ $product->name }}"
-                                                        class="w-full h-full object-cover rounded-lg shadow-sm"
-                                                        onclick="showImage('{{ asset('storage/images/products/' . $gallery->path) }}')">
-                                                </div>
-                                            @endforeach
+                            <!-- Product Title -->
+                            <h1 class="text-3xl sm:text-4xl font-bold text-gray-800 mb-6 leading-tight">
+                                {{ $product->name }}</h1>
+
+                            <!-- Price Section -->
+                            <div class="bg-gradient-to-br from-emerald-50 to-green-50 rounded-xl p-6 mb-8">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <span class="text-sm text-emerald-600 font-medium block mb-2">Harga Produk</span>
+                                        <div class="flex items-baseline space-x-2">
+                                            <span class="text-3xl sm:text-4xl font-bold text-emerald-600">Rp</span>
+                                            <span class="text-3xl sm:text-4xl font-bold text-emerald-600">
+                                                {{ number_format($product->price, 0, ',', '.') }}
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
 
-                    <!-- Right Column - Product Info -->
-                    <div class="bg-white rounded-2xl shadow-lg border border-emerald-100 p-8">
-                        <!-- Category & Status -->
-                        <div class="flex items-center space-x-3 mb-6">
-                            <span
-                                class="px-4 py-1.5 text-sm font-semibold rounded-full text-white bg-emerald-500 shadow-sm">
-                                {{ $product->category->name }}
-                            </span>
-                            <span
-                                class="px-4 py-1.5 text-sm font-semibold rounded-full shadow-sm
-                    {{ $product->status === 'published'
-                        ? 'bg-green-500 text-white'
-                        : ($product->status === 'draft'
-                            ? 'bg-yellow-500 text-white'
-                            : 'bg-red-500 text-white') }}">
-                                {{ ucfirst($product->status) }}
-                            </span>
-                        </div>
-
-                        <!-- Product Title -->
-                        <h1 class="text-4xl font-bold text-gray-800 mb-6 leading-tight">{{ $product->name }}</h1>
-
-                        <!-- Price -->
-                        <div class="bg-emerald-50 rounded-xl p-6 mb-8">
-                            <span class="text-sm text-emerald-600 font-medium block mb-2">Harga</span>
-                            <div class="flex items-baseline space-x-2">
-                                <span class="text-4xl font-bold text-emerald-600">Rp</span>
-                                <span
-                                    class="text-4xl font-bold text-emerald-600">{{ number_format($product->price, 0, ',', '.') }}</span>
-                            </div>
-                        </div>
-
-                        <!-- Description -->
-                        <div class="space-y-6">
-                            <div class="border-t border-gray-100 pt-6">
-                                <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                                    <i class="fas fa-info-circle text-emerald-500 mr-2"></i>
-                                    Deskripsi Produk
-                                </h3>
-                                <p class="text-gray-600 leading-relaxed">{{ $product->description }}</p>
+                            <!-- Description -->
+                            <div class="space-y-6">
+                                <div class="border-t border-gray-100 pt-6">
+                                    <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                                        <i class="fas fa-info-circle text-emerald-500 mr-2"></i>
+                                        Deskripsi Produk
+                                    </h3>
+                                    <div class="prose prose-emerald max-w-none">
+                                        <p class="text-gray-600 leading-relaxed">{{ $product->description }}</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -180,52 +172,87 @@
                     </div>
 
                     <!-- Section Header -->
-                    <div class="flex items-center space-x-4 mb-8">
-                        <div class="bg-gradient-to-br from-emerald-500 to-green-600 p-3 rounded-xl shadow-md">
-                            <i class="fas fa-shopping-cart text-white text-xl"></i>
+                    <div class="flex items-center justify-between mb-8">
+                        <div class="flex items-center space-x-4">
+                            <div class="bg-gradient-to-br from-emerald-500 to-green-600 p-3 rounded-xl shadow-md">
+                                <i class="fas fa-shopping-cart text-white text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-2xl font-bold text-gray-800">Beli di Marketplace</h3>
+                                <p class="text-gray-500 text-sm mt-1">Pilih marketplace kesukaan Anda</p>
+                            </div>2
                         </div>
-                        <div>
-                            <h3 class="text-2xl font-bold text-gray-800">Beli di Marketplace</h3>
-                            <p class="text-gray-500 text-sm mt-1">Pilih marketplace kesukaan Anda</p>
-                        </div>
+
+                        <a href="{{ route('umkms.products.socialMedia.create', [$umkm, $product]) }}"
+                            class="inline-flex items-center px-4 py-2 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100 transition-colors duration-200">
+                            <i class="fas fa-plus mr-2"></i>
+                            <span>Tambah Marketplace</span>
+                        </a>
                     </div>
 
-                    @php
-                        $marketplaceData = [
-                            'tokopedia' => ['color' => 'green-500', 'name' => 'Tokopedia'],
-                            'shopee' => ['color' => 'orange-500', 'name' => 'Shopee'],
-                            'bukalapak' => ['color' => 'red-500', 'name' => 'Bukalapak'],
-                            'bli_bli' => ['color' => 'blue-500', 'name' => 'Blibli'],
-                            'lazada' => ['color' => 'purple-500', 'name' => 'Lazada'],
-                        ];
-                        $hasMarketplace = collect(array_keys($marketplaceData))->some(
-                            fn($marketplace) => !empty($product->$marketplace),
-                        );
-                    @endphp
-
-                    @if ($hasMarketplace)
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-                            @foreach ($marketplaceData as $key => $data)
-                                @if ($product->$key)
-                                    <a href="{{ $product->$key }}" target="_blank" rel="noopener noreferrer"
-                                        class="group/item relative flex flex-col items-center p-6 rounded-xl bg-white hover:bg-{{ $data['color'] }}/5 border-2 border-{{ $data['color'] }}/20 hover:border-{{ $data['color'] }} transition-all duration-300">
-                                        <div
-                                            class="flex items-center justify-center w-12 h-12 rounded-full bg-{{ $data['color'] }}/10 mb-3">
-                                            <i class="fa fa-shopping-bag text-{{ $data['color'] }} text-2xl"></i>
-                                        </div>
-                                        <span
-                                            class="font-medium text-gray-700 group-hover/item:text-{{ $data['color'] }} transition-colors duration-300">
-                                            {{ $data['name'] }}
-                                        </span>
-                                        <div
-                                            class="absolute top-2 right-2 opacity-0 group-hover/item:opacity-100 transition-opacity">
-                                            <i class="fas fa-external-link-alt text-{{ $data['color'] }} text-sm"></i>
-                                        </div>
-                                    </a>
-                                @endif
-                            @endforeach
+                    @forelse($product->socialMedia as $socialMedia)
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="border-b border-gray-200">
+                                        <th class="px-4 py-3 text-left text-sm font-medium text-gray-600">Platform</th>
+                                        <th class="px-4 py-3 text-left text-sm font-medium text-gray-600">Username</th>
+                                        <th class="px-4 py-3 text-left text-sm font-medium text-gray-600">Link</th>
+                                        <th class="px-4 py-3 text-right text-sm font-medium text-gray-600">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100">
+                                    @foreach ($product->socialMedia as $socialMedia)
+                                        <tr class="group hover:bg-emerald-50/50 transition-colors duration-200">
+                                            <td class="px-4 py-4">
+                                                <div class="flex items-center space-x-3">
+                                                    <div
+                                                        class="w-10 h-10 flex items-center justify-center rounded-lg bg-{{ $socialMedia->platform === 'Shopee' ? 'orange' : ($socialMedia->platform === 'Tokopedia' ? 'green' : 'blue') }}-50">
+                                                        <i
+                                                            class="fas fa-shopping-bag text-{{ $socialMedia->platform === 'Shopee' ? 'orange' : ($socialMedia->platform === 'Tokopedia' ? 'green' : 'blue') }}-500"></i>
+                                                    </div>
+                                                    <span
+                                                        class="font-medium text-gray-800">{{ $socialMedia->socialMedia->platform }}</span>
+                                                </div>
+                                            </td>
+                                            <td class="px-4 py-4 text-gray-600">
+                                                {{ $socialMedia->username }}
+                                            </td>
+                                            <td class="px-4 py-4">
+                                                <a href="{{ $socialMedia->url }}" target="_blank"
+                                                    class="text-emerald-600 hover:text-emerald-700 transition-colors duration-200">
+                                                    <div class="flex items-center space-x-1">
+                                                        <span>Kunjungi Toko</span>
+                                                        <i class="fas fa-external-link-alt text-xs"></i>
+                                                    </div>
+                                                </a>
+                                            </td>
+                                            <td class="px-4 py-4">
+                                                <div class="flex items-center justify-end space-x-2">
+                                                    <a href="{{ route('umkms.products.socialMedia.edit', [$umkm, $product, $socialMedia]) }}"
+                                                        class="inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium text-white bg-emerald-500 hover:bg-emerald-600 transition-colors duration-200 ease-in-out">
+                                                        <i class="fas fa-edit mr-1.5"></i>
+                                                        Edit
+                                                    </a>
+                                                    <form
+                                                        action="{{ route('umkms.socialMedia.destroy', [$umkm, $product, $socialMedia]) }}"
+                                                        method="POST" class="inline">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit"
+                                                            class="inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium text-white bg-red-500 hover:bg-red-600 transition-colors duration-200 ease-in-out">
+                                                            <i class="fas fa-trash mr-1.5"></i>
+                                                            Hapus
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
                         </div>
-                    @else
+                    @empty
                         <div class="text-center py-12">
                             <div class="mb-6 transform transition-transform hover:scale-110 duration-300">
                                 <i class="fas fa-store-alt-slash text-7xl text-emerald-200 animate-pulse"></i>
@@ -233,14 +260,14 @@
                             <h4 class="text-xl font-semibold text-gray-700 mb-3">Belum Ada Marketplace</h4>
                             <p class="text-gray-500 max-w-md mx-auto mb-6">
                                 Produk ini belum tersedia di marketplace manapun.
-                                Silakan hubungi penjual untuk informasi pembelian lebih lanjut.
+                                Silakan tambahkan marketplace untuk produk ini.
                             </p>
                         </div>
-                    @endif
+                    @endforelse
                 </div>
 
 
-                @if (Auth::user()->hasRole('super-admin'))
+                @if (Auth::user()->hasRole('admin'))
                     <!-- UMKM Information -->
                     <div
                         class="bg-gradient-to-br from-white to-emerald-50/50 rounded-2xl shadow-sm border border-emerald-100 p-6 hover:shadow-md transition-all duration-300 relative overflow-hidden group">

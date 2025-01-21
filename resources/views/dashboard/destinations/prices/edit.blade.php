@@ -17,16 +17,25 @@
                     </li>
                     <li>
                         <div class="flex items-center">
-                            <i class="fas fa-chevron-right text-emerald-300 mx-2"></i>
+                            <i class="fas fa-chevron-right text-emerald-300 mr-2"></i>
                             <a href="{{ route('destinations.index') }}"
                                 class="text-emerald-600 hover:text-emerald-800 font-medium transition-colors duration-200">
-                                Destinasi
+                                Wisata
+                            </a>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="flex items-center">
+                            <i class="fas fa-chevron-right text-emerald-300 mr-2"></i>
+                            <a href="{{ route('destinations.show', $destination) }}"
+                                class="text-emerald-600 hover:text-emerald-800 font-medium transition-colors duration-200">
+                                {{ $destination->name }}
                             </a>
                         </div>
                     </li>
                     <li aria-current="page">
                         <div class="flex items-center">
-                            <i class="fas fa-chevron-right text-emerald-300 mx-2"></i>
+                            <i class="fas fa-chevron-right text-emerald-300 mr-2"></i>
                             <span class="text-emerald-800 font-medium">Edit Harga</span>
                         </div>
                     </li>
@@ -48,7 +57,7 @@
                         </div>
                     </div>
 
-                    <a href="{{ route('destinations.index') }}"
+                    <a href="{{ route('destinations.show', $destination) }}"
                         class="inline-flex items-center px-4 py-2 rounded-xl text-sm font-medium text-emerald-700 bg-emerald-100
                     hover:bg-emerald-200 transition-all duration-300">
                         <i class="fas fa-arrow-left mr-2"></i>
@@ -59,8 +68,8 @@
 
             <!-- Form Section -->
             <div class="bg-white rounded-2xl shadow-sm border border-emerald-100 p-4 sm:p-6">
-                <form action="{{ route('destinations.prices.update', $destinationPriceRule) }}" method="POST"
-                    class="space-y-6">
+                <form action="{{ route('destinations.prices.update', [$destination, $destinationPriceRule]) }}"
+                    method="POST" class="space-y-6">
                     @csrf
                     @method('PUT')
 

@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 
 class StoreEventRequest extends FormRequest
 {
@@ -11,7 +12,9 @@ class StoreEventRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        /** @var \User $user */
+        $user = Auth::user();
+        return $user->hasRole('admin');
     }
 
     /**
@@ -23,6 +26,16 @@ class StoreEventRequest extends FormRequest
     {
         return [
             //
+            'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'title' => 'required|string|max:255',
+            'location' => 'required|string|max:255',
+            'price' => 'nullable|numeric|min:0',
+            'registration_url' => 'nullable|url|max:255',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'start_at' => 'required|date_format:H:i',
+            'end_at' => 'required|date_format:H:i',
+            'description' => 'required|string|min:50',
         ];
     }
 }

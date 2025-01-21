@@ -30,15 +30,11 @@ class DestinationController extends Controller
         //
         /** @var User $user */
         $user = Auth::user();
-        if ($user->hasRole('super-admin')) {
-            $destinations = Destination::paginate(10);
-            return view('dashboard.destinations.index', compact('destinations'));
-        } elseif ($user->can('view-destinations')) {
-            $destination = $user->destination;
-            return view('dashboard.destinations.show', compact('destination'));
-        } else {
+        if (!$user->hasRole('admin')) {
             abort(403, 'Anda tidak memiliki izin untuk melihat destinasi.');
         }
+        $destinations = Destination::paginate(10);
+        return view('dashboard.destinations.index', compact('destinations'));
     }
 
     /**
@@ -49,7 +45,7 @@ class DestinationController extends Controller
         //
         /** @var User $user */
         $user = Auth::user();
-        if (!$user->can('create-destinations') && !$user->hasRole('super-admin')) {
+        if (!$user->hasRole('admin')) {
             abort(403, 'Anda tidak memiliki izin untuk membuat destinasi.');
         }
         return view('dashboard.destinations.create');
@@ -60,36 +56,32 @@ class DestinationController extends Controller
      */
     public function store(StoreDestinationRequest $request)
     {
-        /** @var User $user */
-        $user = Auth::user();
-        if (!$user->can('create-destinations') && !$user->hasRole('super-admin')) {
-            abort(403, 'Anda tidak memiliki izin untuk membuat destinasi.');
-        }
-
         $validatedData = $request->validated();
 
         try {
             DB::beginTransaction();
 
-            $userSlug = $this->generateUniqueSlugUser($validatedData['user_name']);
-            $user = User::create([
-                'name' => $validatedData['user_name'],
-                'email' => $validatedData['user_email'],
-                'phone' => $validatedData['user_phone'],
-                'slug' => $userSlug,
-                'password' => Hash::make($validatedData['password']),
-            ]);
+            $slug = $this->generateUniqueSlug($validatedData['name']);
 
-            $user->assignRole('destination-owner');
-
-            $destinationSlug = $this->generateUniqueSlugDestination($validatedData['destination_name']);
+            $imageName = null;
+            if ($request->hasFile('thumbnail')) {
+                $image = $request->file('thumbnail');
+                $extension = $image->getClientOriginalExtension();
+                $imageName = "{$slug}.{$extension}";
+                $image->storeAs('images/destinations', $imageName, 'public');
+            }
 
             Destination::create([
-                'user_id' => $user->id,
-                'name' => $validatedData['destination_name'],
-                'description' => $validatedData['destination_description'],
-                'slug' => $destinationSlug,
-                'status' => 'draft',
+                'name' => $validatedData['name'],
+                'description' => $validatedData['description'],
+                'slug' => $slug,
+                'email' => $validatedData['email'],
+                'address' => $validatedData['address'],
+                'open_at' => $validatedData['open_at'],
+                'close_at' => $validatedData['close_at'],
+                'thumbnail' => $imageName,
+                'phone' => $validatedData['phone'],
+                'status' => $validatedData['status'],
             ]);
 
             DB::commit();
@@ -112,11 +104,11 @@ class DestinationController extends Controller
         //
         /** @var User $user */
         $user = Auth::user();
-        if (!$user->hasRole('super-admin')) {
+        if (!$user->hasRole('admin')) {
             return redirect()->route('dashboard')
                 ->with('error', 'Anda tidak memiliki akses untuk melihat destinasi ini.');
         }
-        $destination->load('galleries', 'comments', 'ratings');
+        $destination->load('comments', 'ratings');
         return view('dashboard.destinations.show', compact('destination'));
     }
 
@@ -126,18 +118,12 @@ class DestinationController extends Controller
     public function edit(Destination $destination)
     {
         //
-
-    }
-    public function editAdmin()
-    {
-        //
         /** @var User $user */
         $user = Auth::user();
-        if (!$user->can('edit-destinations')) {
+        if (!$user->hasRole('admin')) {
             abort(403, 'Anda tidak memiliki izin untuk mengedit destinasi.');
         }
-        $destination = Auth::user()->destination;
-        return view('dashboard.destinations.editAdmin', compact(
+        return view('dashboard.destinations.edit', compact(
             'destination',
         ));
     }
@@ -148,29 +134,10 @@ class DestinationController extends Controller
     public function update(UpdateDestinationRequest $request, Destination $destination)
     {
         //
-    }
-    public function updateAdmin(Request $request)
-    {
-        /** @var User $user */
-        $user = Auth::user();
-        if (!$user->hasPermissionTo('edit-destinations')) {
-            return redirect()->route('dashboard')
-                ->with('error', 'Anda tidak memiliki akses untuk melihat destinasi ini.');
-        }
-        $validatedData = $request->validate([
-            'name' => 'required|string|max:255',
-            'capacity' => 'required|integer',
-            'description' => 'required|string',
-            'address' => 'required|string',
-            'open_at' => ['required', 'date_format:H:i:s'],
-            'close_at' => ['required', 'date_format:H:i:s', 'after:open_at'],
-            'thumbnail' => 'nullable|image',
-
-        ]);
+        $validatedData = $request->validated();
         try {
-            $destination = Auth::user()->destination;
             $imageName = $destination->thumbnail;
-            $slug = $this->generateUniqueSlugDestination($validatedData['name']);
+            $slug = $this->generateUniqueSlug($validatedData['name']);
             if ($request->hasFile('thumbnail')) {
                 if ($destination->thumbnail) {
                     Storage::disk('public')->delete('images/destinations/' . $destination->thumbnail);
@@ -184,13 +151,12 @@ class DestinationController extends Controller
                 'name' => $validatedData['name'],
                 'description' => $validatedData['description'],
                 'slug' => $slug,
-                'capacity' => $validatedData['capacity'],
                 'address' => $validatedData['address'],
                 'open_at' => $validatedData['open_at'],
                 'close_at' => $validatedData['close_at'],
                 'thumbnail' => $imageName,
             ]);
-            return redirect()->route('destinations.index')
+            return redirect()->route('destinations.show', $destination)
                 ->with('success', 'Data destinasi berhasil diperbarui.');
         } catch (\Exception $e) {
             Log::error('Error updating destination: ' . $e->getMessage());
@@ -206,9 +172,38 @@ class DestinationController extends Controller
     public function destroy(Destination $destination)
     {
         //
+        /** @var User $user */
+        $user = Auth::user();
+        if (!$user->hasRole('admin')) {
+            abort(403, 'Anda tidak memiliki izin untuk menghapus destinasi.');
+        }
+
+        try {
+            if ($destination->thumbnail) {
+                Storage::disk('public')->delete('images/destinations/' . $destination->thumbnail);
+            }
+            if ($destination->galleries) {
+                foreach ($destination->galleries as $gallery) {
+                    Storage::disk('public')->delete('images/destinations/galleries/' . $gallery->path);
+                }
+            }
+
+            $destination->facilities()->delete();
+            $destination->attractions()->delete();
+            $destination->destinationPriceRules()->delete();
+            $destination->galleries()->delete();
+            $destination->socialMedia()->delete();
+            $destination->delete();
+            return redirect()->route('destinations.index')
+                ->with('success', 'Blog berhasil dihapus.');
+        } catch (\Exception $e) {
+            Log::error($e->getMessage());
+            return redirect()->back()
+                ->with('error', 'Terjadi kesalahan saat menghapus blog.');
+        }
     }
 
-    private function generateUniqueSlugDestination($name)
+    private function generateUniqueSlug($name)
     {
         $baseSlug = Str::slug($name);
         $randomString = Str::random(8);
@@ -237,22 +232,29 @@ class DestinationController extends Controller
         return $slug;
     }
 
-    public function destinationPriceCreate()
+    public function destinationPriceCreate(Destination $destination)
     {
         /** @var User $user */
         $user = Auth::user();
-        if (!$user->can('create-prices') && !$user->hasRole('super-admin')) {
-            abort(403, 'Anda tidak memiliki izin untuk membuat destinasi.');
+        if (!$user->hasRole('admin')) {
+            abort(403, 'Anda tidak memiliki izin untuk mengakses destinasi ini.');
         }
-        $priceRuleTypes = PriceRuleType::all();
-        return view('dashboard.destinations.prices.create', compact('priceRuleTypes'));
+        $priceRuleTypes = PriceRuleType::whereNotIn('id', function ($query) use ($destination) {
+            $query->select('price_rule_type_id')
+                ->from('destination_price_rules')
+                ->where('destination_id', $destination->id);
+        })->get();
+        return view('dashboard.destinations.prices.create', compact(
+            'priceRuleTypes',
+            'destination'
+        ));
     }
 
-    public function destinationPriceStore(Request $request)
+    public function destinationPriceStore(Request $request, Destination $destination)
     {
         /** @var User $user */
         $user = Auth::user();
-        if (!$user->can('create-prices') && !$user->hasRole('super-admin')) {
+        if (!$user->hasRole('admin')) {
             abort(403, 'Anda tidak memiliki izin untuk membuat destinasi.');
         }
 
@@ -262,14 +264,13 @@ class DestinationController extends Controller
         ]);
 
         try {
-            DestinationPriceRule::create([
-                'destination_id' => $user->destination->id,
+            $destination->destinationPriceRules()->create([
                 'price_rule_type_id' => $request->price_rule_type_id,
                 'price' => $request->price,
                 'status' => 'active',
             ]);
 
-            return redirect()->route('destinations.index')
+            return redirect()->route('destinations.show', $destination)
                 ->with('success', 'Harga berhasil ditambahkan.');
         } catch (\Exception $e) {
             Log::error('Error creating destination price: ' . $e->getMessage());
@@ -279,22 +280,31 @@ class DestinationController extends Controller
         }
     }
 
-    public function destinationPriceEdit(DestinationPriceRule $destinationPriceRule)
+    public function destinationPriceEdit(Destination $destination, DestinationPriceRule $destinationPriceRule)
     {
         /** @var User $user */
         $user = Auth::user();
-        if (!$user->can('edit-prices') && !$user->hasRole('super-admin')) {
+        if (!$user->hasRole('admin')) {
             abort(403, 'Anda tidak memiliki izin untuk mengedit harga.');
         }
-        $priceRuleTypes = PriceRuleType::all();
-        return view('dashboard.destinations.prices.edit', compact('destinationPriceRule', 'priceRuleTypes'));
+        $priceRuleTypes = PriceRuleType::where('id', $destinationPriceRule->price_rule_type_id)
+            ->orWhereNotIn('id', function ($query) use ($destination) {
+                $query->select('price_rule_type_id')
+                    ->from('destination_price_rules')
+                    ->where('destination_id', $destination->id);
+            })->get();
+        return view('dashboard.destinations.prices.edit', compact(
+            'destination',
+            'destinationPriceRule',
+            'priceRuleTypes',
+        ));
     }
 
-    public function destinationPriceUpdate(Request $request, DestinationPriceRule $destinationPriceRule)
+    public function destinationPriceUpdate(Request $request, Destination $destination, DestinationPriceRule $destinationPriceRule)
     {
         /** @var User $user */
         $user = Auth::user();
-        if (!$user->can('edit-prices') && !$user->hasRole('super-admin')) {
+        if (!$user->hasRole('admin')) {
             abort(403, 'Anda tidak memiliki izin untuk mengedit harga.');
         }
 
@@ -309,7 +319,7 @@ class DestinationController extends Controller
                 'price' => $request->price,
             ]);
 
-            return redirect()->route('destinations.index')
+            return redirect()->route('destinations.show', $destination)
                 ->with('success', 'Harga berhasil diperbarui.');
         } catch (\Exception $e) {
             Log::error('Error updating destination price: ' . $e->getMessage());
@@ -319,17 +329,17 @@ class DestinationController extends Controller
         }
     }
 
-    public function destinationPriceDestroy(DestinationPriceRule $destinationPriceRule)
+    public function destinationPriceDestroy(Destination $destination, DestinationPriceRule $destinationPriceRule)
     {
         /** @var User $user */
         $user = Auth::user();
-        if (!$user->can('delete-prices') && !$user->hasRole('super-admin')) {
+        if (!$user->hasRole('admin')) {
             abort(403, 'Anda tidak memiliki izin untuk menghapus harga.');
         }
 
         try {
             $destinationPriceRule->delete();
-            return redirect()->route('destinations.index')
+            return redirect()->route('destinations.show', $destination)
                 ->with('success', 'Harga berhasil dihapus.');
         } catch (\Exception $e) {
             Log::error('Error deleting destination price: ' . $e->getMessage());
@@ -338,22 +348,24 @@ class DestinationController extends Controller
         }
     }
 
-    public function destinationAttractionCreate()
+    public function destinationAttractionCreate(Destination $destination)
     {
         /** @var User $user */
         $user = Auth::user();
-        if (!$user->can('create-attractions') && !$user->hasRole('super-admin')) {
-            abort(403, 'Anda tidak memiliki izin untuk membuat destinasi.');
+        if (!$user->hasRole('admin')) {
+            abort(403, 'Anda tidak memiliki izin untuk membuat wahana.');
         }
-        return view('dashboard.destinations.attractions.create');
+        return view('dashboard.destinations.attractions.create', compact(
+            'destination'
+        ));
     }
 
-    public function destinationAttractionStore(Request $request)
+    public function destinationAttractionStore(Request $request, Destination $destination)
     {
         /** @var User $user */
         $user = Auth::user();
-        if (!$user->can('create-attractions') && !$user->hasRole('super-admin')) {
-            abort(403, 'Anda tidak memiliki izin untuk membuat destinasi.');
+        if (!$user->hasRole('admin')) {
+            abort(403, 'Anda tidak memiliki izin untuk membuat wahana.');
         }
 
         $request->validate([
@@ -371,14 +383,14 @@ class DestinationController extends Controller
                 $imageName = Str::slug($request->name) . '.' . $extension;
                 $image->storeAs('images/destinations/attractions', $imageName, 'public');
             }
-            $user->destination->attractions()->create([
+            $destination->attractions()->create([
                 'name' => $request->name,
                 'description' => $request->description,
                 'price' => $request->price,
                 'thumbnail' => $imageName,
             ]);
 
-            return redirect()->route('destinations.index')
+            return redirect()->route('destinations.show', $destination)
                 ->with('success', 'Wisata berhasil ditambahkan.');
         } catch (\Exception $e) {
             Log::error('Error creating destination attraction: ' . $e->getMessage());
@@ -388,22 +400,25 @@ class DestinationController extends Controller
         }
     }
 
-    public function destinationAttractionEdit(Attraction $attraction)
+    public function destinationAttractionEdit(Destination $destination, Attraction $attraction)
     {
         /** @var User $user */
         $user = Auth::user();
-        if (!$user->can('edit-attractions') && !$user->hasRole('super-admin')) {
+        if (!$user->hasRole('admin')) {
             abort(403, 'Anda tidak memiliki izin untuk mengedit wisata.');
         }
 
-        return view('dashboard.destinations.attractions.edit', compact('attraction'));
+        return view('dashboard.destinations.attractions.edit', compact(
+            'attraction',
+            'destination'
+        ));
     }
 
-    public function destinationAttractionUpdate(Request $request, Attraction $attraction)
+    public function destinationAttractionUpdate(Request $request, Destination $destination,  Attraction $attraction)
     {
         /** @var User $user */
         $user = Auth::user();
-        if (!$user->can('edit-attractions') && !$user->hasRole('super-admin')) {
+        if (!$user->hasRole('admin')) {
             abort(403, 'Anda tidak memiliki izin untuk mengedit wisata.');
         }
 
@@ -427,7 +442,7 @@ class DestinationController extends Controller
                 $attraction->update(['thumbnail' => $imageName]);
             }
 
-            return redirect()->route('destinations.index')
+            return redirect()->route('destinations.show', $destination)
                 ->with('success', 'Wisata berhasil diperbarui.');
         } catch (\Exception $e) {
             Log::error('Error updating destination attraction: ' . $e->getMessage());
@@ -437,11 +452,11 @@ class DestinationController extends Controller
         }
     }
 
-    public function destinationAttractionDestroy(Attraction $attraction)
+    public function destinationAttractionDestroy(Destination $destination, Attraction $attraction)
     {
         /** @var User $user */
         $user = Auth::user();
-        if (!$user->can('delete-attractions') && !$user->hasRole('super-admin')) {
+        if (!$user->hasRole('admin')) {
             abort(403, 'Anda tidak memiliki izin untuk menghapus wisata.');
         }
 
@@ -450,7 +465,7 @@ class DestinationController extends Controller
                 Storage::disk('public')->delete('images/destinations/attractions/' . $attraction->thumbnail);
             }
             $attraction->delete();
-            return redirect()->route('destinations.index')
+            return redirect()->route('destinations.show', $destination)
                 ->with('success', 'Wisata berhasil dihapus.');
         } catch (\Exception $e) {
             Log::error('Error deleting destination attraction: ' . $e->getMessage());
@@ -459,34 +474,34 @@ class DestinationController extends Controller
         }
     }
 
-    public function destinationFacilityCreate()
+    public function destinationFacilityCreate(Destination $destination)
     {
         /** @var User $user */
         $user = Auth::user();
-        if (!$user->can('create-facilities') && !$user->hasRole('super-admin')) {
-            abort(403, 'Anda tidak memiliki izin untuk membuat destinasi.');
+        if (!$user->hasRole('admin')) {
+            abort(403, 'Anda tidak memiliki izin untuk membuat fasilitas.');
         }
-        return view('dashboard.destinations.facilities.create');
+        return view('dashboard.destinations.facilities.create', compact('destination'));
     }
 
-    public function destinationFacilityStore(Request $request)
+    public function destinationFacilityStore(Request $request, Destination $destination)
     {
         /** @var User $user */
         $user = Auth::user();
-        if (!$user->can('create-facilities') && !$user->hasRole('super-admin')) {
-            abort(403, 'Anda tidak memiliki izin untuk membuat destinasi.');
+        if (!$user->hasRole('admin')) {
+            abort(403, 'Anda tidak memiliki izin untuk membuat fasilitas.');
         }
 
-        $request->validate([
+        $validatedData = $request->validate([
             'name' => 'required|string',
             'description' => 'required|string',
             'capacity' => 'nullable|integer',
         ]);
 
         try {
-            $user->destination->facilities()->create($request->only('name', 'description', 'capacity'));
+            $destination->facilities()->create($validatedData);
 
-            return redirect()->route('destinations.index')
+            return redirect()->route('destinations.show', $destination)
                 ->with('success', 'Fasilitas berhasil ditambahkan.');
         } catch (\Exception $e) {
             Log::error('Error creating destination facility: ' . $e->getMessage());
@@ -496,35 +511,38 @@ class DestinationController extends Controller
         }
     }
 
-    public function destinationFacilityEdit(Facility $facility)
+    public function destinationFacilityEdit(Destination $destination, Facility $facility)
     {
         /** @var User $user */
         $user = Auth::user();
-        if (!$user->can('edit-facilities') && !$user->hasRole('super-admin')) {
+        if (!$user->hasRole('admin')) {
             abort(403, 'Anda tidak memiliki izin untuk mengedit fasilitas.');
         }
 
-        return view('dashboard.destinations.facilities.edit', compact('facility'));
+        return view('dashboard.destinations.facilities.edit', compact(
+            'destination',
+            'facility'
+        ));
     }
 
-    public function destinationFacilityUpdate(Request $request, Facility $facility)
+    public function destinationFacilityUpdate(Request $request, Destination $destination,  Facility $facility)
     {
         /** @var User $user */
         $user = Auth::user();
-        if (!$user->can('edit-facilities') && !$user->hasRole('super-admin')) {
+        if (!$user->hasRole('admin')) {
             abort(403, 'Anda tidak memiliki izin untuk mengedit fasilitas.');
         }
 
-        $request->validate([
+        $validatedData = $request->validate([
             'name' => 'required|string',
             'description' => 'required|string',
             'capacity' => 'nullable|integer',
         ]);
 
         try {
-            $facility->update($request->only('name', 'description', 'capacity'));
+            $facility->update($validatedData);
 
-            return redirect()->route('destinations.index')
+            return redirect()->route('destinations.show', $destination)
                 ->with('success', 'Fasilitas berhasil diperbarui.');
         } catch (\Exception $e) {
             Log::error('Error updating destination facility: ' . $e->getMessage());
@@ -534,17 +552,17 @@ class DestinationController extends Controller
         }
     }
 
-    public function destinationFacilityDestroy(Facility $facility)
+    public function destinationFacilityDestroy(Destination $destination, Facility $facility)
     {
         /** @var User $user */
         $user = Auth::user();
-        if (!$user->can('delete-facilities') && !$user->hasRole('super-admin')) {
+        if (!$user->hasRole('admin')) {
             abort(403, 'Anda tidak memiliki izin untuk menghapus fasilitas.');
         }
 
         try {
             $facility->delete();
-            return redirect()->route('destinations.index')
+            return redirect()->route('destinations.show', $destination)
                 ->with('success', 'Fasilitas berhasil dihapus.');
         } catch (\Exception $e) {
             Log::error('Error deleting destination facility: ' . $e->getMessage());
@@ -553,7 +571,7 @@ class DestinationController extends Controller
         }
     }
 
-    public function destinationGalleryStore(Request $request)
+    public function destinationGalleryStore(Request $request, Destination $destination)
     {
         try {
             DB::beginTransaction();
@@ -562,7 +580,7 @@ class DestinationController extends Controller
             $user = Auth::user();
 
             // Check permissions
-            if (!$user->can('create-galleries') && !$user->hasRole('super-admin')) {
+            if (!$user->hasRole('admin')) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Anda tidak memiliki izin untuk menambah galeri.'

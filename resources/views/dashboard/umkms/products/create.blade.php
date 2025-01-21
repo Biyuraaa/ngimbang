@@ -17,25 +17,65 @@
                     </li>
                     <li>
                         <div class="flex items-center">
-                            <i class="fas fa-chevron-right text-emerald-300 mx-2"></i>
+                            <i class="fas fa-chevron-right text-emerald-300 mr-2"></i>
                             <a href="{{ route('umkms.index') }}"
                                 class="text-emerald-600 hover:text-emerald-800 font-medium transition-colors duration-200">
                                 UMKM
                             </a>
                         </div>
                     </li>
+                    <li>
+                        <div class="flex items-center">
+                            <i class="fas fa-chevron-right text-emerald-300 mr-2"></i>
+                            <a href="{{ route('umkms.show', $umkm) }}"
+                                class="text-emerald-600 hover:text-emerald-800 font-medium transition-colors duration-200">
+                                {{ $umkm->name }}
+                            </a>
+                        </div>
+                    </li>
                     <li aria-current="page">
                         <div class="flex items-center">
-                            <i class="fas fa-chevron-right text-emerald-300 mx-2"></i>
+                            <i class="fas fa-chevron-right text-emerald-300 mr-2"></i>
                             <span class="text-emerald-800 font-medium">Tambah Produk</span>
                         </div>
                     </li>
                 </ol>
             </nav>
 
+            <!-- Header Section -->
+            <div
+                class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-md border border-emerald-100/50 p-6 mb-8 hover:shadow-lg transition-all duration-300">
+                <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+                    <!-- Title and Icon Section -->
+                    <div class="flex items-center gap-5">
+                        <div
+                            class="bg-gradient-to-br from-emerald-500 to-green-600 p-4 rounded-2xl shadow-lg shadow-emerald-200/50 transform hover:scale-105 transition-transform duration-300">
+                            <i class="fas fa-box text-white text-2xl lg:text-3xl"></i>
+                        </div>
+                        <div class="space-y-1">
+                            <h1 class="text-2xl lg:text-3xl font-bold text-gray-900 tracking-tight">
+                                Tambah Produk
+                            </h1>
+                            <p class="text-sm text-emerald-600/90 font-medium">
+                                Tambahkan produk baru untuk UMKM
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex flex-col sm:flex-row w-full sm:w-auto gap-3 sm:gap-4">
+                        <a href="{{ route('umkms.show', $umkm) }}"
+                            class="inline-flex items-center justify-center px-5 py-2.5 rounded-xl text-sm font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-all duration-300 hover:shadow focus:ring-2 focus:ring-emerald-200 focus:ring-offset-2">
+                            <i class="fas fa-arrow-left mr-2"></i>
+                            Kembali
+                        </a>
+                    </div>
+                </div>
+            </div>
+
             <!-- Form Section -->
             <div class="bg-white rounded-2xl shadow-sm border border-emerald-100 p-4 sm:p-6">
-                <form action="{{ route('umkms.products.store') }}" method="POST" enctype="multipart/form-data"
+                <form action="{{ route('umkms.products.store', $umkm) }}" method="POST" enctype="multipart/form-data"
                     class="space-y-6">
                     @csrf
 
@@ -158,56 +198,6 @@
 
                             <!-- Error Message -->
                             @error('thumbnail')
-                                <p class="mt-2 text-sm text-red-600">
-                                    <i class="fas fa-exclamation-circle mr-1"></i>
-                                    {{ $message }}
-                                </p>
-                            @enderror
-                        </div>
-                    </div>
-
-                    <!-- Gallery Upload Section -->
-                    <div class="space-y-4">
-                        <div class="flex items-center space-x-3">
-                            <div class="bg-emerald-100 rounded-lg p-2">
-                                <i class="fas fa-images text-emerald-600 text-lg"></i>
-                            </div>
-                            <h3 class="text-lg font-semibold text-gray-900">Galeri Produk</h3>
-                        </div>
-
-                        <div class="w-full">
-                            <!-- Gallery Dropzone -->
-                            <div id="gallery-dropzone"
-                                class="relative w-full h-48 rounded-2xl border-2 border-dashed border-emerald-200 
-                   bg-emerald-50/50 hover:bg-emerald-50 transition-all duration-300 group">
-
-                                <!-- Hidden File Input -->
-                                <input type="file" name="galleries[]" id="gallery-input" multiple
-                                    class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                                    accept="image/png,image/jpeg,image/jpg">
-
-                                <!-- Upload Placeholder -->
-                                <div class="absolute inset-0 flex flex-col items-center justify-center">
-                                    <div
-                                        class="bg-white p-4 rounded-full shadow-md mb-3 group-hover:scale-110 transition-transform duration-300">
-                                        <i class="fas fa-images text-3xl text-emerald-500"></i>
-                                    </div>
-                                    <p class="text-sm font-medium text-emerald-800">
-                                        Drag and drop atau klik untuk menambah foto galeri
-                                    </p>
-                                    <p class="text-xs text-emerald-600 mt-1">
-                                        PNG, JPG atau JPEG (Maks. 2MB per file)
-                                    </p>
-                                </div>
-                            </div>
-
-                            <!-- Gallery Preview Grid -->
-                            <div id="gallery-preview" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-4">
-                                <!-- Preview items will be inserted here -->
-                            </div>
-
-                            <!-- Error Messages -->
-                            @error('galleries.*')
                                 <p class="mt-2 text-sm text-red-600">
                                     <i class="fas fa-exclamation-circle mr-1"></i>
                                     {{ $message }}

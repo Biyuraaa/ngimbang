@@ -20,7 +20,7 @@ class ProfileController extends Controller
 
         /** @var User $user */
         $user = Auth::user();
-        if ($user->hasPermissionTo('view-profile')) {
+        if ($user->hasRole('admin')) {
             return view('dashboard.profile.index');
         } else {
             abort(403, 'Anda tidak memiliki izin untuk melihat profil.');
@@ -35,7 +35,7 @@ class ProfileController extends Controller
 
         /** @var User $user */
         $user = Auth::user();
-        if ($user->hasPermissionTo('edit-profile')) {
+        if ($user->hasRole('admin')) {
             return view('dashboard.profile.edit');
         } else {
             abort(403, 'Anda tidak memiliki izin untuk menyunting profil.');

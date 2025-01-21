@@ -58,7 +58,7 @@
 
             <!-- Form Section -->
             <div class="bg-white rounded-2xl shadow-sm border border-emerald-100 p-4 sm:p-6">
-                <form action="{{ route('destinations.attractions.update', $attraction->id) }}" method="POST"
+                <form action="{{ route('destinations.attractions.update', [$destination, $attraction]) }}" method="POST"
                     enctype="multipart/form-data" class="space-y-6">
                     @csrf
                     @method('PUT')
@@ -103,7 +103,7 @@
                     </div>
                     <!-- Thumbnail Input -->
                     <div>
-                        <label for="thumbnail" class="block text-sm font-medium text-gray-700 mb-2">Gambar APBD</label>
+                        <label for="thumbnail" class="block text-sm font-medium text-gray-700 mb-2">Gambar Wahana</label>
                         <div class="relative">
                             <!-- Hidden file input -->
                             <input type="file" name="thumbnail" id="thumbnail" accept="image/*" class="hidden">

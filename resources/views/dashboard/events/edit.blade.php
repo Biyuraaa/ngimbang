@@ -17,7 +17,7 @@
 
                     <li>
                         <div class="flex items-center">
-                            <i class="fas fa-chevron-right text-emerald-300 mx-2"></i>
+                            <i class="fas fa-chevron-right text-emerald-300 mr-2"></i>
                             <a href="{{ route('events.index') }}"
                                 class="text-emerald-600 hover:text-emerald-800 font-medium transition-colors duration-200">
                                 Event
@@ -26,8 +26,8 @@
                     </li>
                     <li aria-current="page">
                         <div class="flex items-center">
-                            <i class="fas fa-chevron-right text-emerald-300 mx-2"></i>
-                            <span class="text-emerald-800 font-medium">Edit Event</span>
+                            <i class="fas fa-chevron-right text-emerald-300 mr-2"></i>
+                            <span class="text-emerald-800 font-medium">Edit {{ $event->title }}</span>
                         </div>
                     </li>
                 </ol>
@@ -70,11 +70,12 @@
                             <div
                                 class="w-full h-72 rounded-2xl border-3 border-dashed border-emerald-200 bg-emerald-50/50 
                 hover:bg-emerald-50 transition-colors duration-300 cursor-pointer">
-                                <img id="image-preview" src="{{ $event->image ? asset('storage/' . $event->image) : '#' }}"
+                                <img id="image-preview"
+                                    src="{{ $event->thumbnail ? asset('storage/images/events/' . $event->thumbnail) : '#' }}"
                                     alt="Preview"
-                                    class="{{ $event->image ? '' : 'hidden' }} w-full h-full rounded-2xl object-cover">
+                                    class="{{ $event->thumbnail ? '' : 'hidden' }} w-full h-full rounded-2xl object-cover">
                                 <div id="upload-placeholder"
-                                    class="{{ $event->image ? 'hidden' : '' }} absolute inset-0 flex flex-col items-center justify-center">
+                                    class="{{ $event->thumbnail ? 'hidden' : '' }} absolute inset-0 flex flex-col items-center justify-center">
                                     <div class="bg-white p-4 rounded-full shadow-md mb-3">
                                         <i class="fas fa-cloud-upload-alt text-3xl text-emerald-500"></i>
                                     </div>
@@ -83,14 +84,14 @@
                                     <p class="text-xs text-emerald-600 mt-1">PNG, JPG atau JPEG (Maks. 2MB)</p>
                                 </div>
                             </div>
-                            <input type="file" name="image" id="image"
+                            <input type="file" name="thumbnail" id="thumbnail"
                                 class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" accept="image/*">
                         </div>
-                        @if ($event->image)
+                        @if ($event->thumbnail)
                             <div class="mt-2 flex items-center justify-between">
                                 <p class="text-sm text-gray-500">
                                     <i class="fas fa-image mr-1"></i>
-                                    {{ basename($event->image) }}
+                                    {{ basename($event->thumbnail) }}
                                 </p>
                                 <button type="button" id="remove-image" class="text-sm text-red-500 hover:text-red-600">
                                     <i class="fas fa-trash-alt mr-1"></i>
@@ -98,7 +99,7 @@
                                 </button>
                             </div>
                         @endif
-                        @error('image')
+                        @error('thumbnail')
                             <p class="mt-2 text-sm text-red-600">
                                 <i class="fas fa-exclamation-circle mr-1"></i>{{ $message }}
                             </p>
@@ -190,9 +191,8 @@
                                         <i class="far fa-calendar text-gray-400"></i>
                                     </div>
                                     <input type="date" name="start_date" id="start_date" required
-                                        class="block w-full pl-10 rounded-xl border-emerald-200 shadow-sm focus:border-emerald-500 
-                                               focus:ring focus:ring-emerald-200 focus:ring-opacity-50 transition-shadow duration-300"
-                                        value="{{ old('start_date', $event->start_date) }}">
+                                        class="block w-full pl-10 rounded-xl border-emerald-200 shadow-sm focus:border-emerald-500 focus:ring focus:ring-emerald-200 focus:ring-opacity-50 transition-shadow duration-300"
+                                        value="{{ old('start_date', $event->start_date ? $event->start_date->format('Y-m-d') : \Carbon\Carbon::now()->format('Y-m-d')) }}">
                                 </div>
                                 @error('start_date')
                                     <p class="text-sm text-red-600"><i
@@ -209,9 +209,8 @@
                                         <i class="far fa-calendar text-gray-400"></i>
                                     </div>
                                     <input type="date" name="end_date" id="end_date" required
-                                        class="block w-full pl-10 rounded-xl border-emerald-200 shadow-sm focus:border-emerald-500 
-                                               focus:ring focus:ring-emerald-200 focus:ring-opacity-50 transition-shadow duration-300"
-                                        value="{{ old('end_date', $event->end_date) }}">
+                                        class="block w-full pl-10 rounded-xl border-emerald-200 shadow-sm focus:border-emerald-500 focus:ring focus:ring-emerald-200 focus:ring-opacity-50 transition-shadow duration-300"
+                                        value="{{ old('end_date', $event->end_date ? $event->end_date->format('Y-m-d') : \Carbon\Carbon::now()->format('Y-m-d')) }}">
                                 </div>
                                 @error('end_date')
                                     <p class="text-sm text-red-600"><i
@@ -228,8 +227,8 @@
                                     </div>
                                     <input type="time" name="start_at" id="start_at" required
                                         class="block w-full pl-10 rounded-xl border-emerald-200 shadow-sm focus:border-emerald-500 
-                                               focus:ring focus:ring-emerald-200 focus:ring-opacity-50 transition-shadow duration-300"
-                                        value="{{ old('start_at', $event->start_at) }}">
+                   focus:ring focus:ring-emerald-200 focus:ring-opacity-50 transition-shadow duration-300"
+                                        value="{{ old('start_at', \Carbon\Carbon::parse($event->start_at)->format('H:i')) }}">
                                 </div>
                                 @error('start_at')
                                     <p class="text-sm text-red-600"><i
@@ -247,8 +246,8 @@
                                     </div>
                                     <input type="time" name="end_at" id="end_at" required
                                         class="block w-full pl-10 rounded-xl border-emerald-200 shadow-sm focus:border-emerald-500 
-                                               focus:ring focus:ring-emerald-200 focus:ring-opacity-50 transition-shadow duration-300"
-                                        value="{{ old('end_at', $event->end_at) }}">
+                   focus:ring focus:ring-emerald-200 focus:ring-opacity-50 transition-shadow duration-300"
+                                        value="{{ old('end_at', \Carbon\Carbon::parse($event->end_at)->format('H:i')) }}">
                                 </div>
                                 @error('end_at')
                                     <p class="text-sm text-red-600"><i
@@ -296,7 +295,7 @@
 @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const imageInput = document.getElementById('image');
+            const imageInput = document.getElementById('thumbnail');
             const imagePreview = document.getElementById('image-preview');
             const uploadPlaceholder = document.getElementById('upload-placeholder');
             const removeButton = document.getElementById('remove-image');

@@ -20,10 +20,11 @@ class FaqController extends Controller
         //
         /**  @var User $user */
         $user = Auth::user();
-        if ($user->hasPermissionTo('view-faqs')) {
-            $faqs = Faq::paginate(10);
-            return view('dashboard.faqs.index', compact('faqs'));
+        if (!$user->hasRole('admin')) {
+            abort(403, 'Anda tidak memiliki izin untuk melihat FAQ.');
         }
+        $faqs = Faq::paginate(10);
+        return view('dashboard.faqs.index', compact('faqs'));
     }
 
     /**
@@ -34,7 +35,7 @@ class FaqController extends Controller
         //
         /** @var User $user */
         $user = Auth::user();
-        if (!$user->can('create-faqs') && !$user->hasRole('super-admin')) {
+        if (!$user->hasRole('admin')) {
             abort(403, 'Anda tidak memiliki izin untuk membuat FAQ.');
         }
         return view('dashboard.faqs.create');
@@ -46,9 +47,7 @@ class FaqController extends Controller
     public function store(StoreFaqRequest $request)
     {
         //
-
         $validatedData = $request->validated();
-
         try {
             Faq::create($validatedData);
             return redirect()->route('faqs.index')->with('success', 'FAQ berhasil dibuat.');
@@ -74,7 +73,7 @@ class FaqController extends Controller
         //
         /** @var User $user */
         $user = Auth::user();
-        if (!$user->can('edit-faqs') && !$user->hasRole('super-admin')) {
+        if (!$user->hasRole('admin')) {
             abort(403, 'Anda tidak memiliki izin untuk membuat FAQ.');
         }
         return view('dashboard.faqs.edit', compact('faq'));

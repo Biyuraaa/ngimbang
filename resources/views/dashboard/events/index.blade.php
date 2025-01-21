@@ -16,7 +16,7 @@
                     </li>
                     <li aria-current="page">
                         <div class="flex items-center">
-                            <i class="fas fa-chevron-right text-emerald-300 mx-2"></i>
+                            <i class="fas fa-chevron-right text-emerald-300 mr-2"></i>
                             <span class="text-emerald-800 font-medium">Event</span>
                         </div>
                     </li>
@@ -64,9 +64,7 @@
                                 <th class="px-6 py-4 text-left text-sm font-semibold text-emerald-700">Lokasi</th>
                                 <th class="px-6 py-4 text-left text-sm font-semibold text-emerald-700">Harga</th>
                                 <th class="px-6 py-4 text-left text-sm font-semibold text-emerald-700">Status</th>
-                                @if (Auth::user()->can('manage-events'))
-                                    <th class="px-6 py-4 text-right text-sm font-semibold text-emerald-700">Aksi</th>
-                                @endif
+                                <th class="px-6 py-4 text-right text-sm font-semibold text-emerald-700">Aksi</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-emerald-100">
@@ -86,14 +84,19 @@
                                         <div class="text-sm text-gray-600">{{ $event->location }}</div>
                                     </td>
                                     <td class="px-6 py-4">
-                                        <div class="text-sm text-gray-600">
-                                            {{ $event->price ? 'Rp ' . number_format($event->price, 0, ',', '.') : 'Gratis' }}
+                                        <div class="text-sm">
+                                            @if ($event->price == 0 || $event->price === null)
+                                                <span class="text-green-600 font-medium">Gratis</span>
+                                            @else
+                                                <span class="text-gray-600">Rp
+                                                    {{ number_format($event->price, 0, ',', '.') }}</span>
+                                            @endif
                                         </div>
                                     </td>
                                     <td class="px-6 py-4">
                                         <div class="text-sm text-gray-600 capitalize">{{ $event->status }}</div>
                                     </td>
-                                    @if (Auth::user()->can('manage-events'))
+                                    @if (Auth::user()->hasRole('admin'))
                                         <td class="px-3 py-2">
                                             <div class="flex justify-end items-center gap-2">
                                                 <a href="{{ route('events.show', $event) }}"
@@ -122,7 +125,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="{{ Auth::user()->hasRole('super-admin') ? '6' : '5' }}" class="px-6 py-8">
+                                    <td colspan="{{ Auth::user()->hasRole('admin') ? '6' : '5' }}" class="px-6 py-8">
                                         <div class="flex flex-col items-center justify-center">
                                             <div class="bg-emerald-100 rounded-full p-4 mb-4">
                                                 <i class="fas fa-calendar-alt text-emerald-500 text-2xl"></i>
@@ -137,7 +140,6 @@
                     </table>
 
                 </div>
-
                 @if ($events->hasPages())
                     <div class="px-6 py-4 border-t border-emerald-100">
                         {{ $events->links() }}

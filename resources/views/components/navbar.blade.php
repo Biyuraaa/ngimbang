@@ -32,7 +32,12 @@
 
             <!-- Desktop Menu -->
             <ul class="hidden md:flex items-center space-x-6">
-                @foreach ([['name' => 'Tentang Kami', 'route' => '#', 'items' => [['name' => 'Informasi Desa', 'route' => 'informasi-desa'], ['name' => 'Sejarah Desa', 'route' => ''], ['name' => 'Visi dan Misi', 'route' => '']]], ['name' => 'Potensi', 'route' => '#', 'items' => [['name' => 'UMKM', 'route' => '/umkm'], ['name' => 'Wisata', 'route' => '/wisata'], ['name' => 'Peternakan', 'route' => '/peternakan'], ['name' => 'Pertanian', 'route' => '/pertanian']]], ['name' => 'Informasi', 'route' => '#', 'items' => [['name' => 'Blog', 'route' => 'blog'], ['name' => 'Event', 'route' => 'event']]]] as $menu)
+                @foreach ([
+        ['name' => 'Tentang Kami', 'route' => '#', 'items' => [['name' => 'Informasi Desa', 'route' => 'informasi-desa'], ['name' => 'Sejarah Desa', 'route' => 'sejarah-desa'], ['name' => 'Sejarah Dusun', 'route' => 'sejarah-dusun'], ['name' => 'Visi dan Misi', 'route' => 'visi-misi']]],
+        ['name' => 'Potensi', 'route' => '#', 'items' => [['name' => 'UMKM', 'route' => '/umkm'], ['name' => 'Wisata', 'route' => '/wisata']]],
+        ['name' => 'Informasi', 'route' => '#', 'items' => [['name' => 'Blog', 'route' => 'blog'], ['name' => 'Event', 'route' => 'event'], ['name' => 'FAQ', 'route' => 'faqs']]],
+        ['name' => 'Galeri', 'route' => '/galeri'], // Added new gallery menu item
+    ] as $menu)
                     <li class="relative group" x-data="{ open: false }" @mouseenter="open = true"
                         @mouseleave="open = false">
                         <a href="{{ $menu['route'] }}"
@@ -71,9 +76,11 @@
 
                 @auth
                     <div class="flex items-center gap-3 pl-6 border-l border-green-200/50">
-                        @if (Auth::user()->can('view-dashboard'))
+                        @if (Auth::user()->hasRole('admin'))
                             <a href="{{ route('dashboard') }}"
-                                class="group px-4 py-2.5 text-sm font-medium text-green-700 hover:text-green-800 bg-green-50/30 hover:bg-green-100/50 rounded-xl hover:shadow-sm transition-all duration-300 flex items-center gap-2">
+                                class="group px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-300 flex items-center gap-2
+                   text-green-700 hover:text-green-800 bg-green-50/30 hover:bg-green-100/50
+                   border border-green-100/50 hover:border-green-200/50 hover:shadow-sm">
                                 <i class="fas fa-gauge-high transition-transform group-hover:rotate-12"></i>
                                 <span>Dashboard</span>
                             </a>
@@ -82,7 +89,9 @@
                         <form method="POST" action="{{ route('logout') }}" class="inline">
                             @csrf
                             <button type="submit"
-                                class="group px-4 py-2.5 text-sm font-medium text-red-600 hover:text-red-700 bg-red-50/30 hover:bg-red-100/50 rounded-xl hover:shadow-sm transition-all duration-300 flex items-center gap-2 border border-red-100/50 hover:border-red-200/50">
+                                class="group px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-300 flex items-center gap-2
+                   text-red-600 hover:text-red-700 bg-red-50/30 hover:bg-red-100/50
+                   border border-red-100/50 hover:border-red-200/50 hover:shadow-sm">
                                 <i
                                     class="fas fa-arrow-right-from-bracket transition-transform group-hover:-translate-x-0.5"></i>
                                 <span>Keluar</span>
@@ -188,6 +197,11 @@
 
                     </div>
                 </div>
+
+                <a href="{{ url('/galeri') }}"
+                    class="block px-3 py-2 rounded-md text-base font-medium text-green-700 hover:text-green-900 hover:bg-green-50">
+                    Galeri
+                </a>
 
                 @auth
                     <a href="{{ route('dashboard') }}"

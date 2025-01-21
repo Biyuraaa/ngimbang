@@ -16,7 +16,7 @@
                     </li>
                     <li aria-current="page">
                         <div class="flex items-center">
-                            <i class="fas fa-chevron-right text-emerald-300 mx-2"></i>
+                            <i class="fas fa-chevron-right text-emerald-300 mr-2"></i>
                             <span class="text-emerald-800 font-medium">UMKM</span>
                         </div>
                     </li>
@@ -66,13 +66,14 @@
                                     Alamat
                                 </th>
                                 <th class="px-6 py-4 text-left text-sm font-semibold text-emerald-700">
+                                    Pemilik
+                                </th>
+                                <th class="px-6 py-4 text-left text-sm font-semibold text-emerald-700">
                                     Kontak
                                 </th>
-                                @if (Auth::user()->hasRole('umkm-owner') || Auth::user()->hasRole('super-admin'))
-                                    <th class="px-6 py-4 text-right text-sm font-semibold text-emerald-700">
-                                        Aksi
-                                    </th>
-                                @endif
+                                <th class="px-6 py-4 text-right text-sm font-semibold text-emerald-700">
+                                    Aksi
+                                </th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-emerald-100">
@@ -81,13 +82,10 @@
                                     <td class="px-6 py-4">
                                         <div class="flex flex-col">
                                             <span class="font-medium text-gray-900">{{ $umkm->name }}</span>
-                                            <span
-                                                class="text-sm text-gray-500">{{ \Illuminate\Support\Str::limit($umkm->description, 50) }}</span>
                                         </div>
                                     </td>
                                     <td class="px-6 py-4">
                                         <div class="flex items-center text-gray-600">
-                                            <i class="fas fa-map-marker-alt text-emerald-500 mr-2"></i>
                                             <span class="text-sm text-gray-600">
                                                 {{ $umkm->address ? \Illuminate\Support\Str::limit($umkm->address, 50) : 'Alamat belum ditambahkan' }}
                                             </span>
@@ -95,38 +93,62 @@
                                     </td>
                                     <td class="px-6 py-4">
                                         <div class="flex items-center text-gray-600">
-                                            <i class="fas fa-phone text-emerald-500 mr-2"></i>
+                                            <span class="text-sm">{{ $umkm->owner }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center text-gray-600">
                                             <span class="text-sm">{{ $umkm->phone }}</span>
                                         </div>
                                     </td>
-                                    @if (Auth::user()->hasRole('super-admin') || Auth::user()->hasRole('umkm-owner'))
-                                        <td class="px-3 py-2">
-                                            <div class="flex justify-end items-center gap-2">
-                                                <a href="{{ route('umkms.show', $umkm) }}"
-                                                    class="inline-flex items-center px-2 py-1 text-sm rounded-lg text-emerald-700 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 transition-colors duration-200">
-                                                    <i class="fas fa-eye mr-1.5"></i>
-                                                    Lihat
-                                                </a>
-                                                @if (Auth::user()->hasRole('umkm') || Auth::user()->hasRole('super-admin'))
-                                                    <a href="{{ route('umkms.edit', $umkm) }}"
-                                                        class="inline-flex items-center px-2 py-1 text-sm rounded-lg text-orange-700 bg-orange-50 border border-orange-200 hover:bg-orange-100 transition-colors duration-200">
-                                                        <i class="fas fa-edit mr-1.5"></i>
-                                                        Edit
-                                                    </a>
-                                                @endif
-                                            </div>
-                                        </td>
-                                    @endif
+                                    <td class="px-3 py-2">
+                                        <div class="flex justify-end items-center gap-2">
+                                            <a href="{{ route('umkms.show', $umkm) }}"
+                                                class="inline-flex items-center px-2 py-1 text-sm rounded-lg text-emerald-700 bg-emerald-50 border border-emerald-200 hover:bg-emerald-100 transition-colors duration-200">
+                                                <i class="fas fa-eye mr-1.5"></i>
+                                                Lihat
+                                            </a>
+                                            <form action="{{ route('umkms.destroy', $umkm) }}" method="POST">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit"
+                                                    class="inline-flex items-center px-2 py-1 text-sm rounded-lg text-red-700 bg-red-50 border border-red-200 hover:bg-red-100 transition-colors duration-200"
+                                                    onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?')">
+                                                    <i class="fas fa-trash-alt mr-1.5"></i>
+                                                    Hapus
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="{{ Auth::user()->hasRole('super-admin') ? '4' : '3' }}" class="px-6 py-8">
-                                        <div class="flex flex-col items-center justify-center">
-                                            <div class="bg-emerald-100 rounded-full p-4 mb-4">
-                                                <i class="fas fa-store text-emerald-600 text-xl"></i>
+                                    <td colspan="5" class="text-center px-8 py-16"> <!-- Added colspan and centered -->
+                                        <div class="flex flex-col items-center justify-center space-y-6 animate-fadeIn">
+                                            <!-- Icon Container with Animation -->
+                                            <div class="relative">
+                                                <div
+                                                    class="absolute inset-0 bg-emerald-200 rounded-full blur-lg opacity-50">
+                                                </div>
+                                                <div
+                                                    class="relative bg-gradient-to-br from-emerald-100 to-emerald-50 rounded-full p-6 shadow-lg transform transition-all duration-300 hover:scale-110">
+                                                    <i class="fas fa-store text-emerald-600 text-3xl"></i>
+                                                </div>
                                             </div>
-                                            <h3 class="text-emerald-800 font-medium mb-1">Belum ada data UMKM</h3>
-                                            <p class="text-emerald-600 text-sm">Silakan tambahkan UMKM baru</p>
+
+                                            <!-- Text Content -->
+                                            <div class="text-center space-y-2">
+                                                <h3 class="text-xl font-semibold text-emerald-800">Belum ada data UMKM</h3>
+                                                <p class="text-emerald-600">Mulai tambahkan UMKM pertama Anda</p>
+                                            </div>
+
+                                            <!-- Call to Action Button -->
+                                            <a href="{{ route('umkms.create') }}"
+                                                class="inline-flex items-center px-6 py-3 bg-emerald-600 text-white rounded-lg shadow-md hover:bg-emerald-700 transition-colors duration-200 space-x-2 group">
+                                                <i
+                                                    class="fas fa-plus group-hover:rotate-90 transition-transform duration-200"></i>
+                                                <span>Tambah UMKM</span>
+                                            </a>
                                         </div>
                                     </td>
                                 </tr>

@@ -23,6 +23,15 @@
                             </a>
                         </div>
                     </li>
+                    <li>
+                        <div class="flex items-center">
+                            <i class="fas fa-chevron-right text-emerald-300 mx-2"></i>
+                            <a href="{{ route('umkms.show', $umkm) }}"
+                                class="text-emerald-600 hover:text-emerald-800 font-medium transition-colors duration-200">
+                                {{ $umkm->name }}
+                            </a>
+                        </div>
+                    </li>
                     <li aria-current="page">
                         <div class="flex items-center">
                             <i class="fas fa-chevron-right text-emerald-300 mx-2"></i>
@@ -46,7 +55,7 @@
                         </div>
                     </div>
 
-                    <a href="{{ route('umkms.index') }}"
+                    <a href="{{ route('umkms.show', $umkm) }}"
                         class="inline-flex items-center px-4 py-2 rounded-xl text-sm font-medium text-emerald-700 bg-emerald-100
                     hover:bg-emerald-200 transition-all duration-300">
                         <i class="fas fa-arrow-left mr-2"></i>
@@ -57,19 +66,20 @@
 
             <!-- Form Section -->
             <div class="bg-white rounded-2xl shadow-sm border border-emerald-100 p-4 sm:p-6">
-                <form action="{{ route('umkms.socialMedia.update', $socialMedia) }}" method="POST" class="space-y-6">
+                <form action="{{ route('umkms.socialMedia.update', [$umkm, $modelSocialMedia]) }}" method="POST"
+                    class="space-y-6">
                     @csrf
                     @method('PUT')
 
                     <!-- Platform Selection -->
                     <div>
-                        <label for="platform" class="block text-sm font-medium text-gray-700">Platform</label>
-                        <select name="platform" id="platform" required
+                        <label for="social_media_id" class="block text-sm font-medium text-gray-700">Platform</label>
+                        <select name="social_media_id" id="social_media_id" required
                             class="mt-1 block w-full rounded-lg border-emerald-200 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                             <option value="">Pilih Platform</option>
                             @foreach ($socialMediaPlatforms as $platform)
                                 <option value="{{ $platform->id }}"
-                                    {{ $socialMedia->social_media_id == $platform->id ? 'selected' : '' }}>
+                                    {{ $modelSocialMedia->social_media_id == $platform->id ? 'selected' : '' }}>
                                     {{ $platform->platform }}
                                 </option>
                             @endforeach
@@ -84,7 +94,7 @@
                         <label for="url" class="block text-sm font-medium text-gray-700">URL Profil</label>
                         <input type="url" name="url" id="url" required
                             class="mt-1 block w-full rounded-lg border-emerald-200 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
-                            value="{{ old('url', $socialMedia->url) }}" placeholder="https://...">
+                            value="{{ old('url', $modelSocialMedia->url) }}" placeholder="https://...">
                         @error('url')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                         @enderror
@@ -99,7 +109,7 @@
                             </div>
                             <input type="text" name="username" id="username"
                                 class="pl-7 block w-full rounded-lg border-emerald-200 shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
-                                value="{{ old('username', $socialMedia->username) }}" placeholder="username">
+                                value="{{ old('username', $modelSocialMedia->username) }}" placeholder="username">
                         </div>
                         @error('username')
                             <p class="mt-1 text-sm text-red-600">{{ $message }}</p>

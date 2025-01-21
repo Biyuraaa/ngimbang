@@ -15,7 +15,7 @@ class StoreBlogRequest extends FormRequest
     {
         /** @var User $user */
         $user = Auth::user();
-        return $user->can('create-blogs');
+        return $user->hasRole('admin');
     }
 
     /**

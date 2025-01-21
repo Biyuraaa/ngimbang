@@ -17,7 +17,7 @@
                     </li>
                     <li>
                         <div class="flex items-center">
-                            <i class="fas fa-chevron-right text-emerald-300 mx-2"></i>
+                            <i class="fas fa-chevron-right text-emerald-300 mr-2"></i>
                             <a href="{{ route('events.index') }}"
                                 class="text-emerald-600 hover:text-emerald-800 font-medium transition-colors duration-200">
                                 Events
@@ -26,7 +26,7 @@
                     </li>
                     <li aria-current="page">
                         <div class="flex items-center">
-                            <i class="fas fa-chevron-right text-emerald-300 mx-2"></i>
+                            <i class="fas fa-chevron-right text-emerald-300 mr-2"></i>
                             <span class="text-emerald-800 font-medium">{{ $event->title }}</span>
                         </div>
                     </li>
@@ -61,17 +61,30 @@
                 <div class="lg:col-span-2 space-y-6">
                     <!-- Main Image and Title -->
                     <div class="bg-white rounded-2xl shadow-sm border border-emerald-100 overflow-hidden">
-                        <div class="relative h-96">
-                            @if ($event->image)
-                                <img src="{{ asset('storage/' . $event->image) }}" alt="{{ $event->title }}"
-                                    class="w-full h-full object-cover">
+                        <div
+                            class="relative w-full h-[300px] md:h-[400px] lg:h-[500px] overflow-hidden rounded-2xl shadow-lg">
+                            <div class="absolute inset-0 bg-gray-200 animate-pulse" x-show="loading"></div>
+
+                            @if ($event->thumbnail)
+                                <img src="{{ asset('storage/images/events/' . $event->thumbnail) }}"
+                                    alt="{{ $event->title }}"
+                                    class="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
+                                    onload="this.parentElement.querySelector('.animate-pulse').style.display='none'"
+                                    onerror="this.src='{{ asset('assets/images/no_thumbnail.jpg') }}'; this.onerror=null;">
                             @else
-                                <div class="w-full h-full bg-emerald-100 flex items-center justify-center">
-                                    <i class="fas fa-image text-emerald-300 text-6xl"></i>
-                                </div>
+                                <img src="{{ asset('assets/images/no_thumbnail.jpg') }}"
+                                    alt="Default thumbnail for {{ $event->title }}"
+                                    class="w-full h-full object-cover transition-transform duration-700 hover:scale-105">
                             @endif
-                            <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
-                                <h1 class="text-3xl font-bold text-white">{{ $event->title }}</h1>
+
+                            <div
+                                class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-6 md:p-8">
+                                <div class="transform transition-all duration-500 translate-y-0 hover:-translate-y-2">
+                                    <h1
+                                        class="text-2xl md:text-3xl lg:text-4xl font-bold text-white tracking-tight leading-tight">
+                                        {{ $event->title }}
+                                    </h1>
+                                </div>
                             </div>
                         </div>
                     </div>

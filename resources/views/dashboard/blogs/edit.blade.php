@@ -1,5 +1,4 @@
 @extends('layouts.app')
-
 @section('content')
     <div class="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-emerald-50 py-4 sm:py-8">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -17,7 +16,7 @@
                     </li>
                     <li>
                         <div class="flex items-center">
-                            <i class="fas fa-chevron-right text-emerald-300 mx-2"></i>
+                            <i class="fas fa-chevron-right text-emerald-300 mr-2"></i>
                             <a href="{{ route('blogs.index') }}"
                                 class="text-emerald-600 hover:text-emerald-800 font-medium transition-colors duration-200">
                                 Blog
@@ -26,7 +25,7 @@
                     </li>
                     <li aria-current="page">
                         <div class="flex items-center">
-                            <i class="fas fa-chevron-right text-emerald-300 mx-2"></i>
+                            <i class="fas fa-chevron-right text-emerald-300 mr-2"></i>
                             <span class="text-emerald-800 font-medium">Edit Blog</span>
                         </div>
                     </li>
@@ -71,8 +70,8 @@
                         <div class="mt-1 relative">
                             <div
                                 class="w-full h-64 rounded-xl border-2 border-dashed border-emerald-200 bg-emerald-50 flex items-center justify-center">
-                                <img id="image-preview" src="{{ asset('storage/' . $blog->thumbnail) }}" alt="Image Preview"
-                                    class="max-h-full rounded-lg object-cover">
+                                <img id="image-preview" src="{{ asset('storage/images/blogs/' . $blog->thumbnail) }}"
+                                    alt="Image Preview" class="max-h-full rounded-lg object-cover">
                                 <div id="upload-placeholder" class="text-center hidden">
                                     <i class="fas fa-cloud-upload-alt text-4xl text-emerald-400 mb-2"></i>
                                     <p class="text-sm text-emerald-600">Klik untuk memilih gambar atau drag and drop</p>

@@ -2,7 +2,6 @@
 @section('content')
     <div class="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-emerald-50 py-4 sm:py-8">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <!-- Breadcrumb -->
             <nav class="flex mb-4 sm:mb-8 overflow-x-auto" aria-label="Breadcrumb">
                 <ol class="inline-flex items-center space-x-1 md:space-x-3 whitespace-nowrap">
                     <li>
@@ -16,13 +15,12 @@
                     </li>
                     <li aria-current="page">
                         <div class="flex items-center">
-                            <i class="fas fa-chevron-right text-emerald-300 mx-2"></i>
+                            <i class="fas fa-chevron-right text-emerald-300 mr-2"></i>
                             <span class="text-emerald-800 font-medium">Blog</span>
                         </div>
                     </li>
                 </ol>
             </nav>
-
             <!-- Header Section -->
             <div class="bg-white rounded-2xl shadow-sm border border-emerald-100 p-4 sm:p-6 mb-4 sm:mb-8">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-4 sm:space-y-0">
@@ -63,9 +61,6 @@
                                     Judul Blog
                                 </th>
                                 <th class="px-6 py-4 text-left text-sm font-semibold text-emerald-700">
-                                    Author
-                                </th>
-                                <th class="px-6 py-4 text-left text-sm font-semibold text-emerald-700">
                                     Dibuat
                                 </th>
                                 <th class="px-6 py-4 text-left text-sm font-semibold text-emerald-700">
@@ -84,13 +79,6 @@
                                             <span class="font-medium text-gray-900">{{ $blog->title }}</span>
                                         </div>
                                     </td>
-                                    @if (Auth::user()->hasRole('super-admin'))
-                                        <td class="px-6 py-4">
-                                            <div class="flex items-center text-gray-600">
-                                                <span class="text-sm">{{ $blog->user->name }}</span>
-                                            </div>
-                                        </td>
-                                    @endif
                                     <td class="px-6 py-4">
                                         <div class="flex items-center text-gray-600">
                                             <span class="text-sm">
@@ -100,7 +88,7 @@
                                     </td>
                                     <td class="px-6 py-4">
                                         <div class="flex items-center text-gray-600">
-                                            <span class="text-sm">{{ $blog->excerpt }}</span>
+                                            <span class="text-sm">{{ Str::limit($blog->excerpt, 50, '...') }}</span>
                                         </div>
                                     </td>
                                     <td class="px-3 py-2">
@@ -133,7 +121,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="{{ Auth::user()->hasRole('super-admin') ? '5' : '4' }}" class="px-6 py-8">
+                                    <td colspan="{{ Auth::user()->hasRole('admin') ? '5' : '4' }}" class="px-6 py-8">
                                         <div class="flex flex-col items-center justify-center">
                                             <div class="bg-emerald-100 rounded-full p-4 mb-4">
                                                 <i class="fas fa-blog text-emerald-600 text-xl"></i>
@@ -154,8 +142,6 @@
                     </div>
                 @endif
             </div>
-
-
         </div>
     </div>
 @endsection

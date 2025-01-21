@@ -12,9 +12,16 @@ class Event extends Model
 
     protected $table = 'events';
 
+
     protected $fillable = [
+        'user_id',
         'title',
         'description',
+        'slug',
+        'price',
+        'registration_url',
+        'start_at',
+        'end_at',
         'start_date',
         'end_date',
         'location',

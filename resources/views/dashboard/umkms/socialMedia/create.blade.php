@@ -57,13 +57,13 @@
 
             <!-- Form Section -->
             <div class="bg-white rounded-2xl shadow-sm border border-emerald-100 p-4 sm:p-6">
-                <form action="{{ route('umkms.socialMedia.store') }}" method="POST" class="space-y-6">
+                <form action="{{ route('umkms.socialMedia.store', $umkm) }}" method="POST" class="space-y-6">
                     @csrf
 
                     <!-- Platform Selection -->
                     <div>
-                        <label for="platform" class="block text-sm font-medium text-gray-700">Platform</label>
-                        <select name="platform" id="platform" required
+                        <label for="social_media_id" class="block text-sm font-medium text-gray-700">Platform</label>
+                        <select name="social_media_id" id="social_media_id" required
                             class="mt-1 block w-full rounded-lg border-emerald-200 shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
                             <option value="">Pilih Platform</option>
                             @foreach ($socialMediaPlatforms as $socialMediaPlatform)

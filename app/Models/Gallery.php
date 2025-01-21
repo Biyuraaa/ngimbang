@@ -2,21 +2,20 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Gallery extends Model
 {
     //
+
+    use HasFactory;
+
     protected $table = 'galleries';
 
     protected $fillable = [
-        'path',
-        'galleryable_id',
-        'galleryable_type',
+        'name',
+        'description',
+        'image',
     ];
-
-    public function galleryable()
-    {
-        return $this->morphTo();
-    }
 }

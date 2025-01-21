@@ -18,43 +18,41 @@
                     'route' => 'dashboard',
                     'label' => 'Dashboard',
                     'icon' => 'fas fa-leaf',
-                    'permission' => 'view-dashboard',
                 ],
                 [
                     'route' => 'profile.index',
                     'label' => 'Profile',
                     'icon' => 'fas fa-user',
-                    'permission' => 'view-profile',
                 ],
                 [
                     'route' => 'blogs.index',
                     'label' => 'Blog',
                     'icon' => 'fas fa-blog',
-                    'permission' => 'view-blogs',
                 ],
                 [
                     'route' => 'events.index',
                     'label' => 'Event',
                     'icon' => 'fas fa-calendar-alt',
-                    'permission' => 'view-events',
                 ],
                 [
                     'route' => 'destinations.index',
                     'label' => 'Wisata',
                     'icon' => 'fas fa-map-marked-alt',
-                    'permission' => 'view-destinations',
                 ],
                 [
                     'route' => 'umkms.index',
                     'label' => 'UMKM',
                     'icon' => 'fas fa-store',
-                    'permission' => 'view-umkms',
                 ],
                 [
                     'route' => 'faqs.index',
                     'label' => 'FAQ',
                     'icon' => 'fas fa-question-circle',
-                    'permission' => 'view-faqs',
+                ],
+                [
+                    'route' => 'galleries.index',
+                    'label' => 'Galeri',
+                    'icon' => 'fas fa-images',
                 ],
             ];
         @endphp
@@ -118,25 +116,23 @@
         <nav
             class="flex-1 px-2 lg:px-4 py-4 lg:py-6 space-y-1 lg:space-y-2 overflow-y-auto scrollbar-thin scrollbar-thumb-emerald-200 scrollbar-track-transparent hover:scrollbar-thumb-emerald-300">
             @foreach ($menuItems as $item)
-                @can($item['permission'])
-                    <a href="{{ route($item['route']) }}"
-                        aria-current="{{ request()->routeIs($item['route']) ? 'page' : 'false' }}"
-                        class="group flex items-center px-3 lg:px-4 py-2.5 lg:py-3.5 rounded-xl transition-all duration-300
+                <a href="{{ route($item['route']) }}"
+                    aria-current="{{ request()->routeIs($item['route']) ? 'page' : 'false' }}"
+                    class="group flex items-center px-3 lg:px-4 py-2.5 lg:py-3.5 rounded-xl transition-all duration-300
                         {{ request()->routeIs($item['route'])
                             ? 'bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-lg shadow-emerald-500/30 scale-105'
                             : 'text-emerald-800 hover:bg-emerald-50 hover:text-emerald-600 hover:shadow-md hover:scale-[1.02]' }}">
-                        <div class="relative">
-                            <i class="{{ $item['icon'] }}"></i>
-                            @if (request()->routeIs($item['route']))
-                                <span
-                                    class="absolute -right-1 -top-1 w-1.5 h-1.5 lg:w-2 lg:h-2 bg-white rounded-full"></span>
-                            @endif
-                        </div>
-                        <span class="ml-3 lg:ml-4 font-semibold tracking-wide hidden sm:inline-block">
-                            {{ $item['label'] }}
-                        </span>
-                    </a>
-                @endcan
+                    <div class="relative">
+                        <i class="{{ $item['icon'] }}"></i>
+                        @if (request()->routeIs($item['route']))
+                            <span
+                                class="absolute -right-1 -top-1 w-1.5 h-1.5 lg:w-2 lg:h-2 bg-white rounded-full"></span>
+                        @endif
+                    </div>
+                    <span class="ml-3 lg:ml-4 font-semibold tracking-wide hidden sm:inline-block">
+                        {{ $item['label'] }}
+                    </span>
+                </a>
             @endforeach
         </nav>
 

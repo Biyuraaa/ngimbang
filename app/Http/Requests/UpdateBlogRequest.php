@@ -12,7 +12,9 @@ class UpdateBlogRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return Auth::user()->role === 'admin';
+        /** @var /User $user */
+        $user = Auth::user();
+        return $user->hasRole('admin');
     }
 
     /**
@@ -29,7 +31,7 @@ class UpdateBlogRequest extends FormRequest
             'published_at' => 'nullable|date',
             'tags' => 'nullable|string',
             'excerpt' => 'nullable|string',
-            'image' => 'nullable|image',
+            'thumbnail' => 'nullable|image',
         ];
     }
 }

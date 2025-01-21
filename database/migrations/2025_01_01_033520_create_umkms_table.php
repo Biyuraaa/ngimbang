@@ -13,9 +13,10 @@ return new class extends Migration
     {
         Schema::create('umkms', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained();
             $table->string('name');
+            $table->string('owner');
             $table->text('description');
+            $table->string('email')->unique();
             $table->string('phone')->unique()->nullable();
             $table->string('thumbnail')->nullable();
             $table->string('slug')->unique();

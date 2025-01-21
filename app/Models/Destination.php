@@ -2,22 +2,24 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+
 
 class Destination extends Model
 {
     //
 
-    use SoftDeletes;
+    use SoftDeletes, HasFactory;
 
     protected $table = 'destinations';
     protected $fillable = [
-        'user_id',
         'name',
+        'phone',
+        'email',
         'description',
         'slug',
-        'capacity',
         'address',
         'open_at',
         'close_at',
@@ -56,6 +58,7 @@ class Destination extends Model
     {
         return $this->morphMany(Rating::class, 'rateable');
     }
+
     public function averageRating()
     {
         return $this->ratings()->avg('score') ?? 0;

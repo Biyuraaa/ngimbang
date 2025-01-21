@@ -14,6 +14,8 @@ class Facility extends Model
         'name',
         'description',
         'capacity',
+        'quantity',
+        'destination_id',
     ];
 
     public function destination()

@@ -29,13 +29,11 @@ class UmkmController extends Controller
     {
         /** @var User $user */
         $user = Auth::user();
-        if ($user->hasRole('super-admin')) {
-            $umkms = Umkm::paginate(10);
-            return view('dashboard.umkms.index', compact('umkms'));
-        } else if ($user->can('view-umkms')) {
-            $umkm = $user->umkm;
-            return view('dashboard.umkms.show', compact('umkm'));
+        if (!$user->hasRole('admin')) {
+            abort(403, 'Anda tidak memiliki izin untuk melihat daftar UMKM.');
         }
+        $umkms = Umkm::paginate(10);
+        return view('dashboard.umkms.index', compact('umkms'));
     }
 
     /**
@@ -46,7 +44,7 @@ class UmkmController extends Controller
         //
         /** @var \User $user */
         $user = Auth::user();
-        if (!$user->can('create-umkms') && !$user->hasRole('super-admin')) {
+        if (!$user->hasRole('admin')) {
             abort(403, 'Anda tidak memiliki izin untuk membuat umkm.');
         }
 
@@ -59,37 +57,30 @@ class UmkmController extends Controller
     public function store(StoreUmkmRequest $request)
     {
         //
-        /** @var User $user */
-        $user = Auth::user();
-        if (!$user->can('create-umkms') && !$user->hasRole('super-admin')) {
-            abort(403, 'Anda tidak memiliki izin untuk membuat destinasi.');
-        }
-
         $validatedData = $request->validated();
-
         try {
             DB::beginTransaction();
 
-            $userSlug = $this->generateUniqueSlugUser($validatedData['user_name']);
-            $user = User::create([
-                'name' => $validatedData['user_name'],
-                'email' => $validatedData['user_email'],
-                'phone' => $validatedData['user_phone'],
-                'slug' => $userSlug,
-                'password' => Hash::make($validatedData['password']),
-            ]);
 
-            $user->assignRole('umkm');
+            $slug = $this->generateUniqueSlug($validatedData['name']);
 
-            $umkmSlug = $this->generateUniqueSlugUmkm($validatedData['umkm_name']);
+            $imageName = null;
+            if ($request->hasFile('thumbnail')) {
+                $image = $request->file('thumbnail');
+                $extension = $image->getClientOriginalExtension();
+                $imageName = "{$slug}.{$extension}";
+                $image->storeAs('images/umkms', $imageName, 'public');
+            }
 
             Umkm::create([
-                'user_id' => $user->id,
-                'name' => $validatedData['umkm_name'],
-                'description' => $validatedData['umkm_description'],
-                'address' => $validatedData['umkm_address'],
-                'slug' => $umkmSlug,
-                'status' => 'draft',
+                'name' => $validatedData['name'],
+                'owner' => $validatedData['owner'],
+                'email' => $validatedData['email'],
+                'phone' => $validatedData['phone'],
+                'description' => $validatedData['description'],
+                'address' => $validatedData['address'],
+                'thumbnail' => $imageName,
+                'slug' => $slug,
             ]);
 
             DB::commit();
@@ -113,7 +104,7 @@ class UmkmController extends Controller
         //
         /** @var User $user */
         $user = Auth::user();
-        if (!$user->hasRole('super-admin')) {
+        if (!$user->hasRole('admin')) {
             abort(403, 'Anda tidak memiliki izin untuk melihat UMKM ini.');
         }
 
@@ -129,7 +120,7 @@ class UmkmController extends Controller
 
         /** @var \User $user */
         $user = Auth::user();
-        if (!$user->can('edit-umkms') && !$user->hasRole('super-admin')) {
+        if (!$user->hasRole('admin')) {
             abort(403, 'Anda tidak memiliki izin untuk mengubah umkm.');
         }
 
@@ -141,42 +132,38 @@ class UmkmController extends Controller
      */
     public function update(UpdateUmkmRequest $request, Umkm $umkm)
     {
-        //
-        /** @var \User $user */
-        $user = Auth::user();
-        if (!$user->can('edit-umkms') && !$user->hasRole('super-admin')) {
-            abort(403, 'Anda tidak memiliki izin untuk mengubah umkm.');
-        }
         $validatedData = $request->validated();
         try {
             DB::beginTransaction();
 
-            $userSlug = $this->generateUniqueSlugUser($validatedData['user_name']);
 
-            $umkm->user->update([
-                'name' => $validatedData['user_name'],
-                'phone' => $validatedData['user_phone'],
-                'slug' => $userSlug,
-            ]);
+            $slug = $this->generateUniqueSlug($validatedData['name']);
 
-            if ($validatedData['password']) {
-                $umkm->user->update([
-                    'password' => Hash::make($validatedData['password']),
-                ]);
+            $imageName = $umkm->thumbnail;
+            if ($request->hasFile('thumbnail')) {
+                if ($umkm->thumbnail) {
+                    Storage::disk('public')->delete('images/umkms/' . $umkm->thumbnail);
+                }
+                $image = $request->file('thumbnail');
+                $extension = $image->getClientOriginalExtension();
+                $imageName = "{$slug}.{$extension}";
+                $image->storeAs('images/umkms', $imageName, 'public');
             }
 
-            $umkmSlug = $this->generateUniqueSlugUmkm($validatedData['umkm_name']);
-
             $umkm->update([
-                'name' => $validatedData['umkm_name'],
-                'description' => $validatedData['umkm_description'],
-                'address' => $validatedData['umkm_address'],
-                'slug' => $umkmSlug,
+                'name' => $validatedData['name'],
+                'owner' => $validatedData['owner'],
+                'email' => $validatedData['email'],
+                'phone' => $validatedData['phone'],
+                'description' => $validatedData['description'],
+                'address' => $validatedData['address'],
+                'thumbnail' => $imageName,
+                'slug' => $slug,
             ]);
 
             DB::commit();
 
-            return redirect()->route('umkms.index')
+            return redirect()->route('umkms.show', $umkm)
                 ->with('success', 'Data umkm berhasil diperbarui.');
         } catch (\Exception $e) {
             DB::rollBack();
@@ -193,88 +180,59 @@ class UmkmController extends Controller
     public function destroy(Umkm $umkm)
     {
         //
-    }
-
-    public function editAdmin()
-    {
         /** @var User $user */
         $user = Auth::user();
-        if ($user->hasPermissionTo('edit-umkms')) {
-            $umkm = $user->umkm;
-            $umkm->load('user', 'socialMedia');
-            $socialMediaPlatforms = SocialMedia::all();
-            return view('dashboard.umkms.editAdmin', compact(
-                'umkm',
-                'socialMediaPlatforms'
-
-            ));
+        if (!$user->hasRole('admin')) {
+            abort(403, 'Anda tidak memiliki izin untuk menghapus UMKM ini.');
         }
-    }
 
-    public function updateAdmin(Request $request)
-    {
-        /** @var User $user */
-        $user = Auth::user();
-        if (!$user->hasPermissionTo('edit-umkms')) {
-            abort(403, 'Anda tidak memiliki izin untuk mengubah UMKM ini.');
-        }
-        $validatedData = $request->validate([
-            'name' => 'required|string|max:255',
-            'address' => 'nullable|string',
-            'description' => 'nullable|string',
-            'phone' => 'nullable|string',
-            'thumbnail' => 'nullable|image',
-        ]);
-        DB::beginTransaction();
         try {
-            $umkm = $user->umkm;
-            $slug = $this->generateUniqueSlugUmkm($validatedData['name']);
-            $imageName = $umkm->thumbnail;
-            if ($request->hasFile('thumbnail')) {
-                if ($umkm->thumbnail) {
-                    Storage::disk('public')->delete('images/umkms/' . $umkm->thumbnail);
-                }
-                $image = $request->file('thumbnail');
-                $extension = $image->getClientOriginalExtension();
-                $imageName = "{$slug}.{$extension}";
-                $image->storeAs('images/umkms', $imageName, 'public');
+            if ($umkm->thumbnail) {
+                Storage::disk('public')->delete('images/umkms/' . $umkm->thumbnail);
             }
-            $umkm->update([
-                'name' => $validatedData['name'],
-                'address' => $validatedData['address'],
-                'description' => $validatedData['description'],
-                'slug' => $slug,
-                'phone' => $validatedData['phone'],
-                'thumbnail' => $imageName,
-            ]);
 
-            DB::commit();
-            return redirect()->route('umkms.index')->with('success', 'Data UMKM berhasil diperbarui.');
+            foreach ($umkm->products as $product) {
+                if ($product->thumbnail) {
+                    Storage::disk('public')->delete('images/products/' . $product->thumbnail);
+                }
+                foreach ($product->galleries as $gallery) {
+                    Storage::disk('public')->delete('images/products/' . $gallery->path);
+                }
+                $product->galleries()->delete();
+            }
+
+            $umkm->products()->delete();
+            $umkm->socialMedia()->delete();
+            $umkm->delete();
+
+            return redirect()->route('umkms.index')
+                ->with('success', 'UMKM berhasil dihapus.');
         } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Error updating UMKM: ' . $e->getMessage());
-            return redirect()->back()->withInput()->with('error', 'Terjadi kesalahan saat menyimpan data');
+            Log::error('Error deleting UMKM: ' . $e->getMessage());
+            return redirect()->back()
+                ->with('error', 'Terjadi kesalahan saat menghapus UMKM.');
         }
     }
 
-    public function createProduct()
+    public function createProduct(Umkm $umkm)
     {
         /** @var User $user */
         $user = Auth::user();
-        if ($user->hasPermissionTo('create-products')) {
-            $categories = Category::all();
-            $umkm = $user->umkm;
-            return view('dashboard.umkms.products.create', compact(
-                'categories',
-            ));
+        if (!$user->hasRole('admin')) {
+            abort(403, 'Anda tidak memiliki izin untuk membuat produk.');
         }
+        $categories = Category::all();
+        return view('dashboard.umkms.products.create', compact(
+            'umkm',
+            'categories',
+        ));
     }
 
-    public function storeProduct(Request $request)
+    public function storeProduct(Request $request, Umkm $umkm)
     {
         /** @var User $user */
         $user = Auth::user();
-        if (!$user->hasPermissionTo('create-products')) {
+        if (!$user->hasRole('admin')) {
             abort(403, 'Anda tidak memiliki izin untuk membuat produk.');
         }
 
@@ -284,12 +242,9 @@ class UmkmController extends Controller
             'description' => 'required|string',
             'price' => 'required|numeric',
             'thumbnail' => 'nullable|image',
-            'galleries' => 'nullable|array',
-            'galleries.*' => 'image|mimes:jpeg,png,jpg|max:2048'
         ]);
         DB::beginTransaction();
         try {
-            $umkm = $user->umkm;
             $slug = $this->generateUniqueSlugProduct($validatedData['name']);
             $imageName = null;
             if ($request->hasFile('thumbnail')) {
@@ -298,7 +253,7 @@ class UmkmController extends Controller
                 $imageName = "{$slug}.{$extension}";
                 $image->storeAs('images/products', $imageName, 'public');
             }
-            $product = $umkm->products()->create([
+            $umkm->products()->create([
                 'name' => $validatedData['name'],
                 'description' => $validatedData['description'],
                 'price' => $validatedData['price'],
@@ -307,20 +262,8 @@ class UmkmController extends Controller
                 'slug' => $slug,
             ]);
 
-            if ($request->hasFile('galleries')) {
-                $galleries = $request->file('galleries');
-                foreach ($galleries as $gallery) {
-                    $extension = $gallery->getClientOriginalExtension();
-                    $galleryName = Str::random(8) . ".{$extension}";
-                    $gallery->storeAs('images/products', $galleryName, 'public');
-                    $product->galleries()->create([
-                        'path' => $galleryName,
-                    ]);
-                }
-            }
-
             DB::commit();
-            return redirect()->route('umkms.index')->with('success', 'Produk berhasil dibuat.');
+            return redirect()->route('umkms.show', $umkm)->with('success', 'Produk berhasil dibuat.');
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error creating product: ' . $e->getMessage());
@@ -328,26 +271,26 @@ class UmkmController extends Controller
         }
     }
 
-    public function editProduct(String $slug)
+    public function editProduct(Umkm $umkm, Product $product)
     {
         /** @var User $user */
         $user = Auth::user();
-        if ($user->hasPermissionTo('edit-products')) {
-            $categories = Category::all();
-            $umkm = $user->umkm;
-            $product = Product::where('slug', $slug)->first();
-            return view('dashboard.umkms.products.edit', compact(
-                'categories',
-                'product',
-            ));
+        if (!$user->hasRole('admin')) {
+            abort(403, 'Anda tidak memiliki izin untuk mengubah produk.');
         }
+        $categories = Category::all();
+        return view('dashboard.umkms.products.edit', compact(
+            'categories',
+            'umkm',
+            'product',
+        ));
     }
 
-    public function updateProduct(Request $request, Product $product)
+    public function updateProduct(Request $request, Umkm $umkm, Product $product)
     {
         /** @var User $user */
         $user = Auth::user();
-        if (!$user->hasPermissionTo('edit-products')) {
+        if (!$user->hasRole('admin')) {
             abort(403, 'Anda tidak memiliki izin untuk mengubah produk.');
         }
 
@@ -358,8 +301,6 @@ class UmkmController extends Controller
             'price' => 'required|numeric',
             'status' => 'required|string|in:draft,published,archived',
             'thumbnail' => 'nullable|image',
-            'galleries' => 'nullable|array',
-            'galleries.*' => 'image|mimes:jpeg,png,jpg|max:2048'
         ]);
 
         DB::beginTransaction();
@@ -400,7 +341,7 @@ class UmkmController extends Controller
             }
 
             DB::commit();
-            return redirect()->route('umkms.index')->with('success', 'Produk berhasil diperbarui.');
+            return redirect()->route('umkms.show', $umkm)->with('success', 'Produk berhasil diperbarui.');
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error updating product: ' . $e->getMessage());
@@ -408,97 +349,137 @@ class UmkmController extends Controller
         }
     }
 
-    public function showProduct(String $slug)
+    public function showProduct(Umkm $umkm, Product $product)
     {
         /** @var User $user */
         $user = Auth::user();
-        $product = Product::where('slug', $slug)->firstOrFail();
-        if ($user->can('view-products') && $user->umkm->id === $product->umkm_id) {
-            return view('dashboard.umkms.products.show', compact('product'));
+        if (!$user->hasRole('admin')) {
+            abort(403, 'Anda tidak memiliki akses untuk melihat produk ini.');
         }
-        abort(403, 'Anda tidak memiliki akses untuk melihat produk ini.');
+        return view('dashboard.umkms.products.show', compact(
+            'umkm',
+            'product'
+        ));
     }
 
-    public function createSocialMedia()
+    public function destroyProduct(Umkm $umkm, Product $product)
     {
         /** @var User $user */
         $user = Auth::user();
-        if ($user->hasPermissionTo('create-social_media')) {
-            $socialMediaPlatforms = SocialMedia::all();
-            return view('dashboard.umkms.socialMedia.create', compact('socialMediaPlatforms'));
+        if (!$user->hasRole('admin')) {
+            abort(403, 'Anda tidak memiliki akses untuk menghapus produk ini.');
+        }
+
+        try {
+            if ($product->thumbnail) {
+                Storage::disk('public')->delete('images/products/' . $product->thumbnail);
+            }
+            $product->delete();
+            return redirect()->route('umkms.show', $umkm)->with('success', 'Produk berhasil dihapus.');
+        } catch (\Exception $e) {
+            Log::error('Error deleting product: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Terjadi kesalahan saat menghapus produk.');
         }
     }
 
-    public function storeSocialMedia(Request $request)
+    public function createSocialMedia(Umkm $umkm)
     {
         /** @var User $user */
         $user = Auth::user();
-        if (!$user->hasPermissionTo('create-social_media')) {
+        if (!$user->hasRole('admin')) {
+            abort(403, 'Anda tidak memiliki izin untuk membuat media sosial.');
+        }
+        $socialMediaPlatforms = SocialMedia::all();
+        return view('dashboard.umkms.socialMedia.create', compact(
+            'socialMediaPlatforms',
+            'umkm'
+        ));
+    }
+
+    public function storeSocialMedia(Request $request, Umkm $umkm)
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        if (!$user->hasRole('admin')) {
             abort(403, 'Anda tidak memiliki izin untuk membuat media sosial.');
         }
 
         $validatedData = $request->validate([
-            'platform' => 'required|exists:social_media,id', // Changed from social_media_id to match form
+            'social_media_id' => 'required|exists:social_media,id',
             'url' => 'required|url',
             'username' => 'nullable|string|max:255',
         ]);
 
         try {
-            $umkm = $user->umkm;
             $umkm->socialMedia()->create([
-                'social_media_id' => $validatedData['platform'],
+                'social_media_id' => $validatedData['social_media_id'],
                 'url' => $validatedData['url'],
                 'username' => $validatedData['username'],
             ]);
-            return redirect()->route('umkms.index')->with('success', 'Media sosial berhasil ditambahkan.');
+            return redirect()->route('umkms.show', $umkm)->with('success', 'Media sosial berhasil ditambahkan.');
         } catch (\Exception $e) {
             Log::error('Error creating social media: ' . $e->getMessage());
             return redirect()->back()->withInput()->with('error', 'Terjadi kesalahan saat menyimpan data');
         }
     }
 
-    public function editSocialMedia(ModelSocialMedia $socialMedia)
+    public function editSocialMedia(Umkm $umkm, ModelSocialMedia $modelSocialMedia)
     {
         /** @var User $user */
         $user = Auth::user();
-        if (!$user->hasPermissionTo('edit-social_media')) {
+        if (!$user->hasRole('admin')) {
             abort(403, 'Anda tidak memiliki izin untuk mengedit media sosial.');
         }
-
         $socialMediaPlatforms = SocialMedia::all();
         return view('dashboard.umkms.socialMedia.edit', compact(
             'socialMediaPlatforms',
-            'socialMedia'
+            'modelSocialMedia',
+            'umkm'
         ));
     }
 
-    public function updateSocialMedia(Request $request, ModelSocialMedia $modelSocialMedia)
+    public function updateSocialMedia(Request $request, Umkm $umkm, ModelSocialMedia $modelSocialMedia)
     {
         /** @var User $user */
         $user = Auth::user();
-        if (!$user->hasPermissionTo('edit-social_media')) {
+        if (!$user->hasRole('admin')) {
             abort(403, 'Anda tidak memiliki izin untuk mengedit media sosial.');
         }
 
         $validatedData = $request->validate([
-            'platform' => 'required|exists:social_media,id', // Changed from social_media_id to match form
+            'social_media_id' => 'required|exists:social_media,id',
             'url' => 'required|url',
             'username' => 'nullable|string|max:255',
         ]);
 
-        dd($validatedData);
-
         try {
             $modelSocialMedia->update([
-                'social_media_id' => $validatedData['platform'],
+                'social_media_id' => $validatedData['social_media_id'],
                 'url' => $validatedData['url'],
                 'username' => $validatedData['username'],
             ]);
 
-            return redirect()->route('umkms.index')->with('success', 'Media sosial berhasil diperbarui.');
+            return redirect()->route('umkms.show', $umkm)->with('success', 'Media sosial berhasil diperbarui.');
         } catch (\Exception $e) {
             Log::error('Error updating social media: ' . $e->getMessage());
             return redirect()->back()->withInput()->with('error', 'Terjadi kesalahan saat menyimpan data');
+        }
+    }
+
+    public function destroySocialMedia(Umkm $umkm, ModelSocialMedia $modelSocialMedia)
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        if (!$user->hasRole('admin')) {
+            abort(403, 'Anda tidak memiliki izin untuk menghapus media sosial.');
+        }
+
+        try {
+            $modelSocialMedia->delete();
+            return redirect()->route('umkms.show', $umkm)->with('success', 'Media sosial berhasil dihapus.');
+        } catch (\Exception $e) {
+            Log::error('Error deleting social media: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Terjadi kesalahan saat menghapus media sosial.');
         }
     }
 
@@ -519,7 +500,93 @@ class UmkmController extends Controller
         }
     }
 
-    private function generateUniqueSlugUmkm(String $name)
+    public function createProductSocialMedia(Umkm $umkm, Product $product)
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        if (!$user->hasRole('admin')) {
+            abort(403, 'Anda tidak memiliki izin untuk membuat media sosial produk.');
+        }
+        $socialMediaPlatforms = SocialMedia::all();
+        return view('dashboard.umkms.products.socialMedia.create', compact(
+            'socialMediaPlatforms',
+            'umkm',
+            'product'
+        ));
+    }
+
+    public function storeProductSocialMedia(Request $request, Umkm $umkm, Product $product)
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        if (!$user->hasRole('admin')) {
+            abort(403, 'Anda tidak memiliki izin untuk membuat media sosial produk.');
+        }
+
+        $validatedData = $request->validate([
+            'social_media_id' => 'required|exists:social_media,id',
+            'url' => 'required|url',
+            'username' => 'nullable|string|max:255',
+        ]);
+
+        try {
+            $product->socialMedia()->create([
+                'social_media_id' => $validatedData['social_media_id'],
+                'url' => $validatedData['url'],
+                'username' => $validatedData['username'],
+            ]);
+            return redirect()->route('umkms.products.show', [$umkm, $product])->with('success', 'Media sosial produk berhasil ditambahkan.');
+        } catch (\Exception $e) {
+            Log::error('Error creating product social media: ' . $e->getMessage());
+            return redirect()->back()->withInput()->with('error', 'Terjadi kesalahan saat menyimpan data');
+        }
+    }
+
+    public function editProductSocialMedia(Umkm $umkm, Product $product, ModelSocialMedia $modelSocialMedia)
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        if (!$user->hasRole('admin')) {
+            abort(403, 'Anda tidak memiliki izin untuk mengedit media sosial produk.');
+        }
+        $socialMediaPlatforms = SocialMedia::all();
+        return view('dashboard.umkms.products.socialMedia.edit', compact(
+            'socialMediaPlatforms',
+            'modelSocialMedia',
+            'umkm',
+            'product'
+        ));
+    }
+
+    public function updateProductSocialMedia(Request $request, Umkm $umkm, Product $product, ModelSocialMedia $modelSocialMedia)
+    {
+        /** @var User $user */
+        $user = Auth::user();
+        if (!$user->hasRole('admin')) {
+            abort(403, 'Anda tidak memiliki izin untuk mengedit media sosial produk.');
+        }
+
+        $validatedData = $request->validate([
+            'social_media_id' => 'required|exists:social_media,id',
+            'url' => 'required|url',
+            'username' => 'nullable|string|max:255',
+        ]);
+
+        try {
+            $modelSocialMedia->update([
+                'social_media_id' => $validatedData['social_media_id'],
+                'url' => $validatedData['url'],
+                'username' => $validatedData['username'],
+            ]);
+
+            return redirect()->route('umkms.products.show', [$umkm, $product])->with('success', 'Media sosial produk berhasil diperbarui.');
+        } catch (\Exception $e) {
+            Log::error('Error updating product social media: ' . $e->getMessage());
+            return redirect()->back()->withInput()->with('error', 'Terjadi kesalahan saat menyimpan data');
+        }
+    }
+
+    private function generateUniqueSlug(String $name)
     {
         $baseSlug = Str::slug($name);
         $randomString = Str::random(8);

@@ -17,16 +17,25 @@
                     </li>
                     <li>
                         <div class="flex items-center">
-                            <i class="fas fa-chevron-right text-emerald-300 mx-2"></i>
+                            <i class="fas fa-chevron-right text-emerald-300 mr-2"></i>
                             <a href="{{ route('umkms.index') }}"
                                 class="text-emerald-600 hover:text-emerald-800 font-medium transition-colors duration-200">
                                 UMKM
                             </a>
                         </div>
                     </li>
+                    <li>
+                        <div class="flex items-center">
+                            <i class="fas fa-chevron-right text-emerald-300 mr-2"></i>
+                            <a href="{{ route('umkms.show', $umkm) }}"
+                                class="text-emerald-600 hover:text-emerald-800 font-medium transition-colors duration-200">
+                                {{ $umkm->name }}
+                            </a>
+                        </div>
+                    </li>
                     <li aria-current="page">
                         <div class="flex items-center">
-                            <i class="fas fa-chevron-right text-emerald-300 mx-2"></i>
+                            <i class="fas fa-chevron-right text-emerald-300 mr-2"></i>
                             <span class="text-emerald-800 font-medium">Edit {{ $product->name }}</span>
                         </div>
                     </li>
@@ -35,8 +44,8 @@
 
             <!-- Form Section -->
             <div class="bg-white rounded-2xl shadow-sm border border-emerald-100 p-4 sm:p-6">
-                <form action="{{ route('umkms.products.update', $product) }}" method="POST" enctype="multipart/form-data"
-                    class="space-y-6">
+                <form action="{{ route('umkms.products.update', [$umkm, $product]) }}" method="POST"
+                    enctype="multipart/form-data" class="space-y-6">
                     @csrf
                     @method('PUT')
 
@@ -191,84 +200,6 @@
                                 </div>
                             </div>
                         </div>
-
-                        {{-- Gallery Upload Section --}}
-                        <div class="space-y-4">
-                            <div class="flex items-center space-x-3">
-                                <div class="bg-emerald-100 rounded-lg p-2">
-                                    <i class="fas fa-images text-emerald-600 text-lg"></i>
-                                </div>
-                                <h3 class="text-lg font-semibold text-gray-900">Galeri Produk</h3>
-                            </div>
-
-                            <div class="w-full" x-data="galleryUpload()">
-                                {{-- Gallery Dropzone --}}
-                                <div class="relative w-full h-48 rounded-2xl border-2 border-dashed transition-all duration-300"
-                                    :class="{
-                                        'border-emerald-400 bg-emerald-100/50': isDragging,
-                                        'border-emerald-200 bg-emerald-50/50 hover:bg-emerald-50': !isDragging
-                                    }"
-                                    @dragover.prevent="isDragging = true" @dragleave.prevent="isDragging = false"
-                                    @drop.prevent="handleGalleryDrop($event)">
-                                    {{-- Hidden File Input --}}
-                                    <input type="file" name="galleries[]" id="gallery-input"
-                                        class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                                        accept="image/png,image/jpeg,image/jpg" multiple
-                                        @change="handleGallerySelect($event)">
-
-                                    {{-- Upload Placeholder --}}
-                                    <div class="absolute inset-0 flex flex-col items-center justify-center">
-                                        <div
-                                            class="bg-white p-4 rounded-full shadow-md mb-3 group-hover:scale-110 transition-transform duration-300">
-                                            <i class="fas fa-images text-3xl text-emerald-500"></i>
-                                        </div>
-                                        <p class="text-sm font-medium text-emerald-800">
-                                            Drag and drop atau klik untuk menambah foto galeri
-                                        </p>
-                                        <p class="text-xs text-emerald-600 mt-1">
-                                            PNG, JPG atau JPEG (Maks. 2MB per file)
-                                        </p>
-                                    </div>
-                                </div>
-
-                                {{-- Gallery Preview Grid --}}
-                                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-4">
-                                    @foreach ($product->galleries as $gallery)
-                                        <div class="relative group aspect-square">
-                                            <img src="{{ asset('storage/images/products/' . $gallery->path) }}"
-                                                class="w-full h-full object-cover rounded-lg">
-                                            <div
-                                                class="absolute inset-0 bg-black bg-opacity-40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-lg flex items-center justify-center">
-                                                <button type="button"
-                                                    class="text-white hover:text-red-400 transition-colors duration-200"
-                                                    @click="removeImage({{ $gallery->id }})">
-                                                    <i class="fas fa-trash-alt text-xl"></i>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    @endforeach
-                                    <template x-for="(image, index) in newImages" :key="index">
-                                        <div class="relative group aspect-square">
-                                            <img :src="image.url" class="w-full h-full object-cover rounded-lg">
-                                            <div
-                                                class="absolute inset-0 bg-black bg-opacity-40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-lg flex items-center justify-center">
-                                                <button type="button"
-                                                    class="text-white hover:text-red-400 transition-colors duration-200"
-                                                    @click="removeNewImage(index)">
-                                                    <i class="fas fa-trash-alt text-xl"></i>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </template>
-                                </div>
-
-                                {{-- Error Message --}}
-                                <div class="mt-2 text-sm text-red-600" x-show="error">
-                                    <i class="fas fa-exclamation-circle mr-1"></i>
-                                    <span x-text="error"></span>
-                                </div>
-                            </div>
-                        </div>
                     </div>
 
                     <!-- Submit Button -->
@@ -345,96 +276,6 @@
                     this.fileName = '';
                     this.hasPreview = false;
                     document.getElementById('thumbnail-input').value = '';
-                }
-            }
-        }
-
-        function galleryUpload() {
-            return {
-                isDragging: false,
-                newImages: [],
-                error: null,
-
-                validateFiles(files) {
-                    const maxSize = 2 * 1024 * 1024; // 2MB
-                    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
-                    const maxFiles = 10;
-
-                    if (this.newImages.length + files.length > maxFiles) {
-                        this.error = `Maksimal ${maxFiles} foto yang diperbolehkan`;
-                        return false;
-                    }
-
-                    for (let file of files) {
-                        if (!allowedTypes.includes(file.type)) {
-                            this.error = 'Hanya file PNG, JPG, atau JPEG yang diperbolehkan';
-                            return false;
-                        }
-
-                        if (file.size > maxSize) {
-                            this.error = 'Ukuran file tidak boleh lebih dari 2MB';
-                            return false;
-                        }
-                    }
-
-                    return true;
-                },
-
-                handleGallerySelect(event) {
-                    const files = Array.from(event.target.files);
-                    if (files.length && this.validateFiles(files)) {
-                        this.addFiles(files);
-                    }
-                },
-
-                handleGalleryDrop(event) {
-                    this.isDragging = false;
-                    const files = Array.from(event.dataTransfer.files);
-                    if (files.length && this.validateFiles(files)) {
-                        this.addFiles(files);
-                    }
-                },
-
-                addFiles(files) {
-                    files.forEach(file => {
-                        const reader = new FileReader();
-                        reader.onload = (e) => {
-                            this.newImages.push({
-                                url: e.target.result,
-                                file: file
-                            });
-                            this.error = null;
-                        };
-                        reader.readAsDataURL(file);
-                    });
-                },
-
-                async removeImage(id) {
-                    try {
-                        const response = await fetch(`/dashboard/galleries/${id}`, {
-                            method: 'DELETE',
-                            headers: {
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                            }
-                        });
-
-                        if (!response.ok) {
-                            throw new Error('Failed to delete image');
-                        }
-
-                        // Remove the image from the DOM
-                        const imageElement = document.querySelector(`[data-gallery-id="${id}"]`);
-                        if (imageElement) {
-                            imageElement.remove();
-                        }
-                    } catch (error) {
-                        this.error = 'Gagal menghapus foto';
-                        console.error(error);
-                    }
-                },
-
-                removeNewImage(index) {
-                    this.newImages.splice(index, 1);
                 }
             }
         }
