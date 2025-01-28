@@ -39,11 +39,6 @@ class Destination extends Model
         return $this->hasMany(Facility::class);
     }
 
-    public function galleries()
-    {
-        return $this->morphMany(Gallery::class, 'galleryable');
-    }
-
     public function comments()
     {
         return $this->morphMany(Comment::class, 'commentable');

@@ -240,9 +240,9 @@
                     class="group bg-white rounded-3xl shadow-lg hover:shadow-2xl overflow-hidden transform hover:-translate-y-2 transition-all duration-500">
                     <!-- Image Container -->
                     <div class="relative aspect-[16/9] overflow-hidden">
-                        <img src="{{ asset('storage/' . $blog->image) }}" alt="{{ $blog->nama_blog }}"
+                        <img src="{{ $blog->thumbnail ? asset('storage/images/blogs/' . $blog->thumbnail) : asset('assets/images/no_thumbnail.png') }}"
+                            alt="{{ $blog->title }}"
                             class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700">
-                        <!-- Enhanced Gradient Overlay -->
                         <div
                             class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-60 group-hover:opacity-70 transition-opacity">
                         </div>

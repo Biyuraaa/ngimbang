@@ -126,59 +126,77 @@
                             @enderror
                         </div>
 
-                        <!-- Thumbnail Input Component -->
-                        <div>
-                            <label for="thumbnail" class="block text-sm font-medium text-gray-700 mb-2">Gambar
-                                UMKM</label>
-                            <div class="relative">
-                                <!-- Hidden file input -->
-                                <input type="file" name="thumbnail" id="thumbnail" accept="image/*" class="hidden"
-                                    data-max-size="2048" required>
-
-                                <!-- Drag and drop area -->
-                                <div id="dropZone"
-                                    class="border-2 border-dashed border-emerald-200 rounded-lg p-8 text-center cursor-pointer hover:border-emerald-400 transition-colors duration-200">
-                                    <!-- Upload content -->
-                                    <div id="dropZoneContent">
-                                        <i class="fas fa-cloud-upload-alt text-4xl text-emerald-500 mb-3"></i>
-                                        <p class="text-sm text-gray-600">Drag and drop thumbnail di sini atau</p>
-                                        <p class="text-xs text-gray-500 mt-1">PNG, JPG, JPEG (Maks. 2MB)</p>
-                                        <button type="button"
-                                            class="mt-2 inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium text-white bg-emerald-500 hover:bg-emerald-600 focus:ring-2 focus:ring-emerald-300 transition-colors duration-200">
-                                            <i class="fas fa-upload mr-2"></i>
-                                            Pilih File
-                                        </button>
-                                    </div>
-
-                                    <!-- Image preview -->
-                                    <div id="imagePreview" class="hidden mt-4">
-                                        <div class="relative max-w-sm mx-auto">
-                                            <img src="#" alt="Preview"
-                                                class="max-h-64 w-auto mx-auto rounded-lg shadow-sm">
-                                            <button type="button" id="removeImage"
-                                                class="mt-2 inline-flex items-center px-3 py-1 rounded-lg text-sm font-medium text-red-700 bg-red-50 hover:bg-red-100 transition-colors duration-200">
-                                                <i class="fas fa-times mr-1"></i>
-                                                Hapus
-                                            </button>
-                                        </div>
-                                        <p class="mt-2 text-sm text-gray-500 file-name"></p>
-                                    </div>
-
-                                    <!-- Loading state -->
-                                    <div id="uploadLoading" class="hidden">
-                                        <div
-                                            class="animate-spin rounded-full h-10 w-10 border-b-2 border-emerald-500 mx-auto">
-                                        </div>
-                                        <p class="mt-2 text-sm text-gray-600">Memproses gambar...</p>
-                                    </div>
+                        <!-- Thumbnail Upload Section -->
+                        <div class="space-y-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="bg-emerald-100 rounded-lg p-2">
+                                    <i class="fas fa-image text-emerald-600 text-lg"></i>
                                 </div>
+                                <h3 class="text-lg font-semibold text-gray-900">Foto Galeri</h3>
                             </div>
 
-                            <!-- Error message -->
-                            <div id="errorMessage" class="hidden mt-1 text-sm text-red-600"></div>
-                            @error('thumbnail')
-                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
+                            <div class="w-full">
+                                <div class="relative">
+                                    <!-- Dropzone Area -->
+                                    <div id="dropzone"
+                                        class="relative w-full h-72 rounded-2xl border-2 border-dashed border-emerald-200 
+                bg-emerald-50/50 hover:bg-emerald-50 transition-all duration-300 group">
+
+                                        <!-- Hidden File Input -->
+                                        <input type="file" name="thumbnail" id="thumbnail-input"
+                                            class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                            accept="image/png,image/jpeg,image/jpg">
+
+                                        <!-- Image Preview -->
+                                        <div class="absolute inset-0 w-full h-full">
+                                            <img id="preview-image" src="#" alt="Preview"
+                                                class="hidden w-full h-full object-cover rounded-2xl">
+                                        </div>
+
+                                        <!-- Upload Placeholder -->
+                                        <div id="upload-placeholder"
+                                            class="absolute inset-0 flex flex-col items-center justify-center">
+                                            <!-- Icon Container -->
+                                            <div
+                                                class="bg-white p-4 rounded-full shadow-md mb-3 group-hover:scale-110 transition-transform duration-300">
+                                                <i class="fas fa-cloud-upload-alt text-3xl text-emerald-500"></i>
+                                            </div>
+                                            <!-- Text Instructions -->
+                                            <p class="text-sm font-medium text-emerald-800">
+                                                Drag and drop gambar atau klik untuk memilih
+                                            </p>
+                                            <p class="text-xs text-emerald-600 mt-1">
+                                                PNG, JPG atau JPEG (Maks. 2MB)
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- File Info and Remove Button -->
+                                <div id="thumbnail-info" class="hidden mt-3">
+                                    <div class="flex items-center justify-between bg-emerald-50 rounded-lg p-3">
+                                        <div class="flex items-center">
+                                            <i class="fas fa-image text-emerald-600 mr-2"></i>
+                                            <span id="filename-display"
+                                                class="text-sm text-emerald-700 truncate max-w-xs"></span>
+                                        </div>
+                                        <button type="button" id="remove-thumbnail"
+                                            class="inline-flex items-center px-3 py-1 text-sm font-medium text-red-500 bg-white rounded-lg 
+                    shadow-sm hover:bg-red-50 hover:text-red-600 transition-all duration-200">
+                                            <i class="fas fa-trash-alt mr-1.5"></i>
+                                            Hapus Foto
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Error Message -->
+                                @error('thumbnail')
+                                    <p class="mt-2 text-sm text-red-600">
+                                        <i class="fas fa-exclamation-circle mr-1"></i>
+                                        {{ $message }}
+                                    </p>
+                                @enderror
+                            </div>
                         </div>
                     </div>
 
@@ -201,20 +219,23 @@
 @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const dropZone = document.getElementById('dropZone');
-            const fileInput = document.getElementById('thumbnail');
-            const imagePreview = document.getElementById('imagePreview');
-            const dropZoneContent = document.getElementById('dropZoneContent');
-            const uploadLoading = document.getElementById('uploadLoading');
-            const previewImage = imagePreview.querySelector('img');
-            const removeButton = document.getElementById('removeImage');
-            const errorMessage = document.getElementById('errorMessage');
-            const fileName = imagePreview.querySelector('.file-name');
-            const maxFileSize = parseInt(fileInput.dataset.maxSize) * 1024; // Convert to KB
+            // Elements
+            const dropzone = document.getElementById('dropzone');
+            const thumbnailInput = document.getElementById('thumbnail-input');
+            const previewImage = document.getElementById('preview-image');
+            const uploadPlaceholder = document.getElementById('upload-placeholder');
+            const thumbnailInfo = document.getElementById('thumbnail-info');
+            const filenameDisplay = document.getElementById('filename-display');
+            const removeButton = document.getElementById('remove-thumbnail');
 
-            // Prevent defaults for drag and drop events
+            // File validation constants
+            const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
+            const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/jpg'];
+
+            // Prevent default drag behaviors
             ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-                dropZone.addEventListener(eventName, preventDefaults, false);
+                dropzone.addEventListener(eventName, preventDefaults, false);
+                document.body.addEventListener(eventName, preventDefaults, false);
             });
 
             function preventDefaults(e) {
@@ -222,113 +243,204 @@
                 e.stopPropagation();
             }
 
-            // Handle drag states
+            // Highlight dropzone on drag
             ['dragenter', 'dragover'].forEach(eventName => {
-                dropZone.addEventListener(eventName, () => {
-                    dropZone.classList.add('border-emerald-400', 'bg-emerald-50');
-                });
+                dropzone.addEventListener(eventName, highlight, false);
             });
 
             ['dragleave', 'drop'].forEach(eventName => {
-                dropZone.addEventListener(eventName, () => {
-                    dropZone.classList.remove('border-emerald-400', 'bg-emerald-50');
-                });
+                dropzone.addEventListener(eventName, unhighlight, false);
             });
 
-            // Handle file drop
-            dropZone.addEventListener('drop', (e) => {
+            function highlight() {
+                dropzone.classList.add('border-emerald-400', 'bg-emerald-100/50');
+            }
+
+            function unhighlight() {
+                dropzone.classList.remove('border-emerald-400', 'bg-emerald-100/50');
+            }
+
+            // Handle dropped files
+            dropzone.addEventListener('drop', (e) => {
                 const files = e.dataTransfer.files;
-                handleFiles(files);
-            });
-
-            // Handle file selection via button
-            dropZone.querySelector('button').addEventListener('click', () => {
-                fileInput.click();
-            });
-
-            fileInput.addEventListener('change', function() {
-                handleFiles(this.files);
-            });
-
-            function handleFiles(files) {
-                if (files.length === 0) return;
-
-                const file = files[0];
-
-                // Validate file type
-                if (!file.type.startsWith('image/')) {
-                    showError('Hanya file gambar yang diperbolehkan (PNG, JPG, JPEG)');
-                    return;
+                if (files.length) {
+                    thumbnailInput.files = files;
+                    handleFiles(files[0]);
                 }
+            });
 
-                // Validate file size
-                if (file.size > maxFileSize) {
-                    showError(`Ukuran file terlalu besar. Maksimal ${maxFileSize/1024/1024}MB`);
-                    return;
+            // Handle file input change
+            thumbnailInput.addEventListener('change', function() {
+                if (this.files.length) {
+                    handleFiles(this.files[0]);
                 }
+            });
 
-                // Clear any existing errors
-                hideError();
+            // Process the file
+            function handleFiles(file) {
+                if (!validateFile(file)) return;
 
-                // Show loading state
-                showLoading();
-
-                // Process image
                 const reader = new FileReader();
-                reader.onload = function(e) {
-                    // Create image to check dimensions
-                    const img = new Image();
-                    img.onload = function() {
-                        // Hide loading state
-                        hideLoading();
-
-                        // Show preview
-                        previewImage.src = e.target.result;
-                        fileName.textContent = file.name;
-                        dropZoneContent.classList.add('hidden');
-                        imagePreview.classList.remove('hidden');
-                    };
-                    img.onerror = function() {
-                        hideLoading();
-                        showError('File gambar rusak atau tidak valid');
-                    };
-                    img.src = e.target.result;
-                };
-                reader.onerror = function() {
-                    hideLoading();
-                    showError('Gagal membaca file');
+                reader.onload = (e) => {
+                    showPreview(e.target.result, file.name);
                 };
                 reader.readAsDataURL(file);
             }
 
+            // Validate file
+            function validateFile(file) {
+                // Check file type
+                if (!ALLOWED_TYPES.includes(file.type)) {
+                    showError('Hanya file PNG, JPG, atau JPEG yang diperbolehkan');
+                    return false;
+                }
+
+                // Check file size
+                if (file.size > MAX_FILE_SIZE) {
+                    showError('Ukuran file tidak boleh lebih dari 2MB');
+                    return false;
+                }
+
+                return true;
+            }
+
+            // Show error message
+            function showError(message) {
+                // You can implement a toast or alert here
+                alert(message);
+                resetInput();
+            }
+
+            // Show preview
+            function showPreview(src, filename) {
+                previewImage.src = src;
+                previewImage.classList.remove('hidden');
+                uploadPlaceholder.classList.add('hidden');
+                thumbnailInfo.classList.remove('hidden');
+                filenameDisplay.textContent = filename;
+            }
+
+            // Reset input
+            function resetInput() {
+                thumbnailInput.value = '';
+                previewImage.src = '#';
+                previewImage.classList.add('hidden');
+                uploadPlaceholder.classList.remove('hidden');
+                thumbnailInfo.classList.add('hidden');
+            }
+
             // Handle remove button
-            removeButton.addEventListener('click', function() {
-                fileInput.value = '';
-                imagePreview.classList.add('hidden');
-                dropZoneContent.classList.remove('hidden');
-                hideError();
+            removeButton.addEventListener('click', resetInput);
+
+            const galleryDropzone = document.getElementById('gallery-dropzone');
+            const galleryInput = document.getElementById('gallery-input');
+            const galleryPreview = document.getElementById('gallery-preview');
+
+            // Constants
+            const MAX_FILES = 10; // Maximum number of files allowed
+
+            // Prevent default drag behaviors
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                galleryDropzone.addEventListener(eventName, preventDefaults, false);
             });
 
-            // Helper functions
-            function showLoading() {
-                uploadLoading.classList.remove('hidden');
-                dropZoneContent.classList.add('hidden');
-                imagePreview.classList.add('hidden');
+            // Highlight dropzone on drag
+            ['dragenter', 'dragover'].forEach(eventName => {
+                galleryDropzone.addEventListener(eventName, () => {
+                    galleryDropzone.classList.add('border-emerald-400', 'bg-emerald-100/50');
+                });
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                galleryDropzone.addEventListener(eventName, () => {
+                    galleryDropzone.classList.remove('border-emerald-400', 'bg-emerald-100/50');
+                });
+            });
+
+            // Handle dropped files
+            galleryDropzone.addEventListener('drop', (e) => {
+                const files = e.dataTransfer.files;
+                handleGalleryFiles(Array.from(files));
+            });
+
+            // Handle file input change
+            galleryInput.addEventListener('change', function() {
+                handleGalleryFiles(Array.from(this.files));
+            });
+
+            // Process gallery files
+            function handleGalleryFiles(files) {
+                // Check total files
+                const totalFiles = galleryPreview.children.length + files.length;
+                if (totalFiles > MAX_FILES) {
+                    showError(`Maksimal ${MAX_FILES} foto yang diperbolehkan`);
+                    return;
+                }
+
+                files.forEach(file => {
+                    if (validateFile(file)) {
+                        addGalleryPreview(file);
+                    }
+                });
             }
 
-            function hideLoading() {
-                uploadLoading.classList.add('hidden');
+            // Add preview for gallery image
+            function addGalleryPreview(file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const previewItem = document.createElement('div');
+                    previewItem.className = 'relative group aspect-square';
+
+                    previewItem.innerHTML = `
+                <img src="${e.target.result}" class="w-full h-full object-cover rounded-lg" />
+                <div class="absolute inset-0 bg-black bg-opacity-40 opacity-0 group-hover:opacity-100 
+                            transition-opacity duration-200 rounded-lg flex items-center justify-center">
+                    <button type="button" class="text-white hover:text-red-400 transition-colors duration-200">
+                        <i class="fas fa-trash-alt text-xl"></i>
+                    </button>
+                </div>
+            `;
+
+                    // Add remove functionality
+                    const removeButton = previewItem.querySelector('button');
+                    removeButton.addEventListener('click', () => {
+                        previewItem.remove();
+                        updateGalleryInput();
+                    });
+
+                    galleryPreview.appendChild(previewItem);
+                    updateGalleryInput();
+                };
+                reader.readAsDataURL(file);
             }
 
+            // Update hidden input with current files
+            function updateGalleryInput() {
+                // Implementation depends on how you want to handle the file data
+                // This is a basic example that clears the input if no previews exist
+                if (galleryPreview.children.length === 0) {
+                    galleryInput.value = '';
+                }
+            }
+
+            // Validate file
+            function validateFile(file) {
+                if (!ALLOWED_TYPES.includes(file.type)) {
+                    showError('Hanya file PNG, JPG, atau JPEG yang diperbolehkan');
+                    return false;
+                }
+
+                if (file.size > MAX_FILE_SIZE) {
+                    showError('Ukuran file tidak boleh lebih dari 2MB');
+                    return false;
+                }
+
+                return true;
+            }
+
+            // Show error message
             function showError(message) {
-                errorMessage.textContent = message;
-                errorMessage.classList.remove('hidden');
-                fileInput.value = '';
-            }
-
-            function hideError() {
-                errorMessage.textContent = '';
-                errorMessage.classList.add('hidden');
+                alert(message); // You can replace this with a better error notification
             }
         });
     </script>

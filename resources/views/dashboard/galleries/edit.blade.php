@@ -298,6 +298,7 @@
                 removeInput.value = '1';
                 this.closest('form').appendChild(removeInput);
             });
+
         });
     </script>
 @endpush

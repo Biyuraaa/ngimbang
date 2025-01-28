@@ -104,11 +104,6 @@ Route::prefix('dashboard')->middleware(['auth', 'verified'])->group(function () 
         Route::get('{destination}/facilities/{facility}/edit', [DestinationController::class, 'destinationFacilityEdit'])->name('destinations.facilities.edit');
         Route::put('{destination}/facilities/{facility}', [DestinationController::class, 'destinationFacilityUpdate'])->name('destinations.facilities.update');
         Route::delete('{destination}/facilities/{facility}', [DestinationController::class, 'destinationFacilityDestroy'])->name('destinations.facilities.destroy');
-        Route::get('/galleries/create', [DestinationController::class, 'destinationGalleryCreate'])->name('destinations.galleries.create');
-        Route::post('/galleries', [DestinationController::class, 'destinationGalleryStore'])->name('destinations.galleries.store');
-        Route::get('/galleries/{gallery}/edit', [DestinationController::class, 'destinationGalleryEdit'])->name('destinations.galleries.edit');
-        Route::put('/galleries/{gallery}', [DestinationController::class, 'destinationGalleryUpdate'])->name('destinations.galleries.update');
-        Route::delete('/galleries/{gallery}', [DestinationController::class, 'destinationGalleryDestroy'])->name('destinations.galleries.destroy');
         Route::get('{destination}/social-media/create', [DestinationController::class, 'destinationSocialMediaCreate'])->name('destinations.social-media.create');
         Route::post('{destination}/social-media', [DestinationController::class, 'destinationSocialMediaStore'])->name('destinations.social-media.store');
         Route::get('{destination}/social-media/{socialMedia}/edit', [DestinationController::class, 'destinationSocialMediaEdit'])->name('destinations.social-media.edit');

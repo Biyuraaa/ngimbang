@@ -53,8 +53,8 @@
                         </div>
 
                         <div class="text-center border-l border-green-200/20 pl-4 sm:pl-8">
-                            <div class="text-xl sm:text-3xl font-bold text-white mb-1">4.8</div>
-                            <div class="text-xs sm:text-base text-green-200">Rating</div>
+                            <div class="text-xl sm:text-3xl font-bold text-white mb-1">{{ $allRating }}</div>
+                            <div class="text-xs sm:text-base text-green-200">Rata-rata Rating</div>
                         </div>
 
                         <div class="text-center border-l border-green-200/20 pl-4 sm:pl-8">

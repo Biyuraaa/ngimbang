@@ -166,11 +166,14 @@ class PageController extends Controller
             ->take(3)
             ->get();
 
+        $allRating = number_format(Destination::whereHas('ratings')
+            ->avg('ratings.score'), 1) ?? 0;
         $destinations = Destination::paginate(8);
         return view('pages.potentials.destinations.index', compact(
             'latestDestinations',
             'popularDestinations',
-            'destinations'
+            'destinations',
+            'allRating'
         ));
     }
 
@@ -305,7 +308,7 @@ class PageController extends Controller
 
     public function indexGallery()
     {
-        $galleries = Gallery::paginate(8);
+        $galleries = Gallery::all();
         return view('pages.galleries', compact('galleries'));
     }
 

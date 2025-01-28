@@ -25,7 +25,6 @@ class DatabaseSeeder extends Seeder
             CategorySeeder::class,
 
         ]);
-        Faq::factory(15)->create();
 
 
         $admin = User::factory()->create([
@@ -35,9 +34,5 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $admin->assignRole('admin');
-
-        Destination::factory(10)->create();
-
-        Gallery::factory(10)->create();
     }
 }
